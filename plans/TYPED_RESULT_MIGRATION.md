@@ -1,6 +1,6 @@
 # Typed Result migration — explicit expected failures, exceptions for faults
 
-> **Status:** in progress; Phase 1 is complete and Phase 2 is next.
+> **Status:** in progress; Phases 1 and 2 are complete and Phase 3 is next.
 >
 > **Decision:** adopt `CSharpFunctionalExtensions` for `Result<TValue, TError>` and
 > `UnitResult<TError>`, use Dunet for project-owned closed error unions on .NET 10, and replace
@@ -589,6 +589,12 @@ Verification:
 - whole solution build.
 
 ### Phase 2 — Customer Ticket vertical slice
+
+Progress:
+
+- [x] Customer Ticket purchase and checkout use typed Results, event completion preserves faults as
+  exceptions, HTTP adapters emit stable ProblemDetails, and unit/integration coverage verifies the
+  error cases.
 
 Scope:
 
