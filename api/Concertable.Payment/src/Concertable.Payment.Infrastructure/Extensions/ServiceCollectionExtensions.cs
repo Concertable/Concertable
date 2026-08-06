@@ -39,7 +39,19 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PaymentConfigurationProvider>();
         services.AddSingleton<IEntityTypeConfigurationProvider>(sp => sp.GetRequiredService<PaymentConfigurationProvider>());
 
-        services.Configure<StripeSettings>(configuration.GetSection(StripeSettings.SectionName));
+        var useRealStripe = configuration.GetSection("ExternalServices").GetValue<bool>("UseRealStripe");
+        services.AddOptions<StripeSettings>()
+            .Bind(configuration.GetSection(StripeSettings.SectionName))
+            .Validate(
+                settings => !useRealStripe || !string.IsNullOrWhiteSpace(settings.SecretKey),
+                "Stripe:SecretKey is required when real Stripe is enabled.")
+            .Validate(
+                settings => settings.RequestTimeoutSeconds > 0,
+                "Stripe:RequestTimeoutSeconds must be greater than zero.")
+            .Validate(
+                settings => settings.MaxNetworkRetries is >= 0 and <= 5,
+                "Stripe:MaxNetworkRetries must be between zero and five.")
+            .ValidateOnStart();
 
         services.AddScoped<IOutboxUnitOfWorkBehavior, OutboxUnitOfWorkBehavior>();
 
@@ -72,19 +84,20 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ITransactionService, TransactionService>();
 
-        var useRealStripe = configuration.GetSection("ExternalServices").GetValue<bool>("UseRealStripe");
         if (useRealStripe)
         {
-            services.AddSingleton<Stripe.AccountService>();
-            services.AddSingleton<Stripe.AccountLinkService>();
-            services.AddSingleton<Stripe.CustomerService>();
-            services.AddSingleton<Stripe.PaymentMethodService>();
-            services.AddSingleton<Stripe.SetupIntentService>();
-            services.AddSingleton<Stripe.PaymentIntentService>();
-            services.AddSingleton<Stripe.CustomerSessionService>();
-            services.AddSingleton<Stripe.TransferService>();
-            services.AddSingleton<Stripe.RefundService>();
-            services.AddSingleton<Stripe.TransferReversalService>();
+            services.AddSingleton<Stripe.IStripeClient>(sp =>
+                StripeClientFactory.Create(sp.GetRequiredService<IOptions<StripeSettings>>().Value));
+            services.AddSingleton(sp => new Stripe.AccountService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.AccountLinkService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.CustomerService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.PaymentMethodService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.SetupIntentService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.PaymentIntentService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.CustomerSessionService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.TransferService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.RefundService(sp.GetRequiredService<Stripe.IStripeClient>()));
+            services.AddSingleton(sp => new Stripe.TransferReversalService(sp.GetRequiredService<Stripe.IStripeClient>()));
             services.AddScoped<IStripeAccountClient, StripeAccountClient>();
             services.AddScoped<IStripeHoldClient, StripeHoldClient>();
             services.AddSingleton<IStripeApiClient, StripeApiClient>();

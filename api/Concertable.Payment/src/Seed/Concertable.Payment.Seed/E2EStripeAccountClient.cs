@@ -5,7 +5,6 @@ using Concertable.Payment.Contracts;
 using Concertable.Payment.Infrastructure;
 using Concertable.Payment.Domain.Entities;
 using Concertable.Payment.Domain.Enums;
-using Microsoft.Extensions.Configuration;
 using Stripe;
 
 namespace Concertable.Payment.Seed;
@@ -39,7 +38,6 @@ internal sealed class E2EStripeAccountClient : IStripeAccountClient
     private readonly Stripe.CustomerSessionService customerSessionService;
 
     public E2EStripeAccountClient(
-        IConfiguration configuration,
         IPayoutAccountRepository payoutAccountRepository,
         StripeE2EAccountResolver resolver,
         SetupIntentService setupIntentService,
@@ -47,7 +45,6 @@ internal sealed class E2EStripeAccountClient : IStripeAccountClient
         PaymentMethodService paymentMethodService,
         Stripe.CustomerSessionService customerSessionService)
     {
-        StripeConfiguration.ApiKey = configuration["Stripe:SecretKey"];
         this.payoutAccountRepository = payoutAccountRepository;
         this.resolver = resolver;
         this.setupIntentService = setupIntentService;

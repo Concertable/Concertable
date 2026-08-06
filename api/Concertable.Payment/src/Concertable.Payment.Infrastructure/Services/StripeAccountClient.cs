@@ -1,8 +1,6 @@
 using Concertable.Payment.Application.DTOs;
-using Concertable.Payment.Infrastructure.Settings;
 using Concertable.Kernel.Exceptions;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Stripe;
 using static Concertable.Payment.Contracts.TransactionTypes;
 
@@ -21,7 +19,6 @@ internal sealed class StripeAccountClient : IStripeAccountClient
     private readonly IPayoutAccountRepository payoutAccountRepository;
 
     public StripeAccountClient(
-        IOptions<StripeSettings> stripeSettings,
         IConfiguration configuration,
         AccountService accountService,
         AccountLinkService accountLinkService,
@@ -32,7 +29,6 @@ internal sealed class StripeAccountClient : IStripeAccountClient
         Stripe.CustomerSessionService customerSessionService,
         IPayoutAccountRepository payoutAccountRepository)
     {
-        StripeConfiguration.ApiKey = stripeSettings.Value.SecretKey;
         this.baseUri = configuration["BaseUri:http"]!;
         this.accountService = accountService;
         this.accountLinkService = accountLinkService;

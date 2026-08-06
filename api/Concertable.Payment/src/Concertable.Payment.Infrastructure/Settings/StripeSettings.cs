@@ -7,4 +7,6 @@ internal sealed class StripeSettings
     public string? SecretKey { get; set; }
     public string? PublishableKey { get; set; }
     public string? WebhookSecret { get; set; }
+    public int RequestTimeoutSeconds { get; set; } = 8;
+    public int MaxNetworkRetries { get; set; } = 2;
 }

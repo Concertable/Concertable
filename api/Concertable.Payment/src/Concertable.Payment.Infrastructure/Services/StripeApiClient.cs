@@ -1,6 +1,4 @@
 using Concertable.Payment.Application.Interfaces.Webhook;
-using Concertable.Payment.Infrastructure.Settings;
-using Microsoft.Extensions.Options;
 using Stripe;
 using Transfer = Stripe.Transfer;
 using Refund = Stripe.Refund;
@@ -15,13 +13,11 @@ internal sealed class StripeApiClient : IStripeApiClient
     private readonly TransferReversalService transferReversalService;
 
     public StripeApiClient(
-        IOptions<StripeSettings> stripeSettings,
         PaymentIntentService paymentIntentService,
         TransferService transferService,
         RefundService refundService,
         TransferReversalService transferReversalService)
     {
-        StripeConfiguration.ApiKey = stripeSettings.Value.SecretKey;
         this.paymentIntentService = paymentIntentService;
         this.transferService = transferService;
         this.refundService = refundService;
