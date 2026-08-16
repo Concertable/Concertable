@@ -7,33 +7,33 @@ namespace Concertable.B2B.Concert.Infrastructure.Sync;
 internal sealed class OpportunitySyncer
     : CollectionSyncer<OpportunityEntity, OpportunityRequest>, IOpportunitySyncer
 {
-    private readonly IDealModule dealModule;
+    private readonly IDealTermsModule dealTermsModule;
 
-    public OpportunitySyncer(IWriteRepository<OpportunityEntity> repository, IDealModule dealModule)
+    public OpportunitySyncer(IWriteRepository<OpportunityEntity> repository, IDealTermsModule dealTermsModule)
         : base(repository)
     {
-        this.dealModule = dealModule;
+        this.dealTermsModule = dealTermsModule;
     }
 
     protected override async Task<OpportunityEntity> CreateAsync(int venueId, OpportunityRequest dto)
     {
-        var result = await dealModule.CreateAsync(dto.Deal);
-        var dealId = result.Match(
+        var result = await dealTermsModule.CreateAsync(dto.Terms);
+        var dealTermsId = result.Match(
             id => id,
             _ => throw new InvalidOperationException("Deal creation failed after successful validation."));
         return OpportunityEntity.Create(
             venueId,
             new DateRange(dto.StartDate, dto.EndDate),
-            dealId,
+            dealTermsId,
             dto.Genres);
     }
 
     protected override async Task UpdateAsync(OpportunityEntity entity, OpportunityRequest dto)
     {
-        var result = await dealModule.UpdateAsync(entity.DealId, dto.Deal);
+        var result = await dealTermsModule.UpdateAsync(entity.DealTermsId, dto.Terms);
         if (result.IsFailure)
             throw new InvalidOperationException("Deal update failed after successful validation.");
 
-        entity.Update(new DateRange(dto.StartDate, dto.EndDate), entity.DealId, dto.Genres);
+        entity.Update(new DateRange(dto.StartDate, dto.EndDate), entity.DealTermsId, dto.Genres);
     }
 }

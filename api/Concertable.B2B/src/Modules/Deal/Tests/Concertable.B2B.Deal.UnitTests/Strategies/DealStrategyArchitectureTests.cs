@@ -97,15 +97,15 @@ public sealed class DealStrategyArchitectureTests
     {
         {
             "Concertable.B2B/src/Modules/Deal/Concertable.B2B.Deal.Infrastructure/Extensions/ServiceCollectionExtensions.cs",
-            "strategies.RequireAll<IDealMapper>();"
+            "strategies.RequireAll<IDealTermsMapper>();"
         },
         {
             "Concertable.B2B/src/Modules/Deal/Concertable.B2B.Deal.Infrastructure/Extensions/ServiceCollectionExtensions.cs",
-            "strategies.RequireAll<IDealUpdater>();"
+            "strategies.RequireAll<IDealTermsUpdater>();"
         },
         {
             "Concertable.B2B/src/Modules/Concert/Concertable.B2B.Concert.Infrastructure/Extensions/ServiceCollectionExtensions.cs",
-            "strategies.RequireAll<IDealTerms>();"
+            "strategies.RequireAll<IDealTermsFormatter>();"
         },
         {
             "Concertable.B2B/src/Modules/Concert/Concertable.B2B.Concert.Infrastructure/Extensions/ServiceCollectionExtensions.cs",

@@ -1,6 +1,7 @@
 using Concertable.B2B.Concert.Application.Interfaces;
 using Concertable.DataAccess.Application.Diffing;
 using Concertable.Contracts;
+using System.Text.Json.Serialization;
 
 namespace Concertable.B2B.Concert.Application.Requests;
 
@@ -10,5 +11,6 @@ internal sealed record OpportunityRequest : ISyncRequest
     public DateTime StartDate { get; init; }
     public DateTime EndDate { get; init; }
     public IReadOnlyList<Genre> Genres { get; init; } = [];
-    public required IDeal Deal { get; init; }
+    [JsonPropertyName("deal")]
+    public required IDealTerms Terms { get; init; }
 }

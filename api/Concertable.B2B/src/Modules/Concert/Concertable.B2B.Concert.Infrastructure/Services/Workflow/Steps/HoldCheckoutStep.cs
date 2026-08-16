@@ -9,16 +9,16 @@ namespace Concertable.B2B.Concert.Infrastructure.Services.Workflow.Steps;
 internal sealed class HoldCheckoutStep : IAcceptCheckoutStep
 {
     private readonly IApplicationRepository applicationRepository;
-    private readonly IDealAccessor dealAccessor;
+    private readonly IDealTermsAccessor dealTermsAccessor;
     private readonly IManagerPaymentOperationsClient managerPaymentClient;
 
     public HoldCheckoutStep(
         IApplicationRepository applicationRepository,
-        IDealAccessor dealAccessor,
+        IDealTermsAccessor dealTermsAccessor,
         IManagerPaymentOperationsClient managerPaymentClient)
     {
         this.applicationRepository = applicationRepository;
-        this.dealAccessor = dealAccessor;
+        this.dealTermsAccessor = dealTermsAccessor;
         this.managerPaymentClient = managerPaymentClient;
     }
 
@@ -28,7 +28,7 @@ internal sealed class HoldCheckoutStep : IAcceptCheckoutStep
             .OrNotFound(DisplayNames.Application);
         var venueTenantId = await applicationRepository.GetVenueTenantIdAsync(applicationId)
             .OrNotFound(DisplayNames.Application);
-        var deal = (FlatFeeDeal)dealAccessor.Deal;
+        var deal = (FlatFeeTerms)dealTermsAccessor.Terms;
 
         var metadata = new Dictionary<string, string>
         {

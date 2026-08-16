@@ -15,10 +15,10 @@ public sealed class HoldCheckoutStepTests
     private readonly Guid venueTenantId = Guid.NewGuid();
     private readonly PayeeSummary artist = new("Artist", "artist@example.com");
     private readonly CheckoutSession session = new("pi_secret", "cs", "cus");
-    private readonly FlatFeeDeal deal = new() { PaymentMethod = PaymentMethod.Cash, Fee = 100 };
+    private readonly FlatFeeTerms deal = new() { PaymentMethod = PaymentMethod.Cash, Fee = 100 };
 
     private readonly Mock<IApplicationRepository> applicationRepository;
-    private readonly Mock<IDealAccessor> dealAccessor;
+    private readonly Mock<IDealTermsAccessor> dealTermsAccessor;
     private readonly Mock<IManagerPaymentOperationsClient> managerPaymentClient;
     private readonly HoldCheckoutStep step;
 
@@ -27,20 +27,20 @@ public sealed class HoldCheckoutStepTests
     public HoldCheckoutStepTests()
     {
         this.applicationRepository = new Mock<IApplicationRepository>();
-        this.dealAccessor = new Mock<IDealAccessor>();
+        this.dealTermsAccessor = new Mock<IDealTermsAccessor>();
         this.managerPaymentClient = new Mock<IManagerPaymentOperationsClient>();
 
         applicationRepository.Setup(r => r.GetArtistPayeeAsync(ApplicationId)).ReturnsAsync(artist);
         applicationRepository
             .Setup(r => r.GetVenueTenantIdAsync(ApplicationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(venueTenantId);
-        dealAccessor.SetupGet(c => c.Deal).Returns(deal);
+        dealTermsAccessor.SetupGet(c => c.Terms).Returns(deal);
         managerPaymentClient
             .Setup(c => c.CreateHoldSessionAsync(It.IsAny<Guid>(), It.IsAny<Money>(), It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()))
             .Callback<Guid, Money, IReadOnlyDictionary<string, string>, CancellationToken>((_, _, m, _) => capturedMetadata = m)
             .ReturnsAsync(session);
 
-        this.step = new HoldCheckoutStep(applicationRepository.Object, dealAccessor.Object, managerPaymentClient.Object);
+        this.step = new HoldCheckoutStep(applicationRepository.Object, dealTermsAccessor.Object, managerPaymentClient.Object);
     }
 
     [Fact]

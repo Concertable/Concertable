@@ -15,7 +15,7 @@ namespace Concertable.B2B.Concert.UnitTests.Services;
 
 public sealed class ContractIssuerTests
 {
-    private readonly Mock<IDealAccessor> dealAccessor = new();
+    private readonly Mock<IDealTermsAccessor> dealTermsAccessor = new();
     private readonly Mock<IApplicationRepository> applicationRepository = new();
     private readonly Mock<IContractRepository> contractRepository = new();
     private readonly Mock<IDealTermsRenderer> termsRenderer = new();
@@ -29,19 +29,19 @@ public sealed class ContractIssuerTests
 
     public ContractIssuerTests()
     {
-        dealAccessor.SetupGet(c => c.Deal).Returns(new FlatFeeDeal { PaymentMethod = PaymentMethod.Transfer, Fee = 500m });
+        dealTermsAccessor.SetupGet(c => c.Terms).Returns(new FlatFeeTerms { PaymentMethod = PaymentMethod.Transfer, Fee = 500m });
         applicationRepository
             .Setup(r => r.GetArtistAndVenueByIdAsync(It.IsAny<int>()))
             .ReturnsAsync(((ArtistReadModel, VenueReadModel)?)(
                 new ArtistReadModel { Id = 1, Name = "Artie Artist" },
                 new VenueReadModel { Id = 2, Name = "Vera Venue" }));
-        termsRenderer.Setup(r => r.Render(It.IsAny<IDeal>())).Returns("terms");
+        termsRenderer.Setup(r => r.Render(It.IsAny<IDealTerms>())).Returns("terms");
         currentUser.SetupGet(u => u.Id).Returns(Guid.NewGuid());
         clientContext.SetupGet(c => c.IpAddress).Returns(IPAddress.Loopback);
         clientContext.SetupGet(c => c.UserAgent).Returns("venue-agent");
 
         issuer = new ContractIssuer(
-            dealAccessor.Object,
+            dealTermsAccessor.Object,
             applicationRepository.Object,
             contractRepository.Object,
             termsRenderer.Object,
@@ -71,7 +71,7 @@ public sealed class ContractIssuerTests
         application.Opportunity = OpportunityEntity.Create(
             venueId: 2,
             new DateRange(new DateTime(2026, 6, 1, 20, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 1, 23, 0, 0, DateTimeKind.Utc)),
-            dealId: 3);
+            dealTermsId: 3);
         application.RecordArtistESignature(artistESignature, "fingerprint");
 
         var booking = StandardBooking.Create(application);

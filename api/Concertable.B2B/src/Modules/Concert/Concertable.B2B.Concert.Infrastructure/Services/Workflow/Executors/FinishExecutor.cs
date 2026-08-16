@@ -12,7 +12,7 @@ internal sealed class FinishExecutor : IFinishExecutor
 {
     private readonly ILifecycleTransitioner transitioner;
     private readonly IConcertWorkflowFactory workflows;
-    private readonly IDealResolver dealResolver;
+    private readonly IDealTermsResolver dealResolver;
     private readonly IConcertRepository concertRepository;
     private readonly IDealPayeeResolver dealPayeeResolver;
     private readonly IInvoiceIssuer invoiceIssuer;
@@ -24,7 +24,7 @@ internal sealed class FinishExecutor : IFinishExecutor
     public FinishExecutor(
         ILifecycleTransitioner transitioner,
         IConcertWorkflowFactory workflows,
-        IDealResolver dealResolver,
+        IDealTermsResolver dealResolver,
         IConcertRepository concertRepository,
         IDealPayeeResolver dealPayeeResolver,
         IInvoiceIssuer invoiceIssuer,

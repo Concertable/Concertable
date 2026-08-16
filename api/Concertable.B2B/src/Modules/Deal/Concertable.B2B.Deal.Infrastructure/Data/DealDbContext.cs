@@ -8,11 +8,11 @@ internal sealed class DealDbContext(
     DealConfigurationProvider provider)
     : DbContextBase(options)
 {
-    public DbSet<DealEntity> Deals => Set<DealEntity>();
-    public DbSet<FlatFeeDealEntity> FlatFeeDeals => Set<FlatFeeDealEntity>();
-    public DbSet<DoorSplitDealEntity> DoorSplitDeals => Set<DoorSplitDealEntity>();
-    public DbSet<VersusDealEntity> VersusDeals => Set<VersusDealEntity>();
-    public DbSet<VenueHireDealEntity> VenueHireDeals => Set<VenueHireDealEntity>();
+    public DbSet<DealTermsEntity> DealTerms => Set<DealTermsEntity>();
+    public DbSet<FlatFeeTermsEntity> FlatFeeTerms => Set<FlatFeeTermsEntity>();
+    public DbSet<DoorSplitTermsEntity> DoorSplitTerms => Set<DoorSplitTermsEntity>();
+    public DbSet<VersusTermsEntity> VersusTerms => Set<VersusTermsEntity>();
+    public DbSet<VenueHireTermsEntity> VenueHireTerms => Set<VenueHireTermsEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

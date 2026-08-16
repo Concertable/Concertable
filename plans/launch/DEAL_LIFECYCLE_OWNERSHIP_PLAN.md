@@ -265,19 +265,19 @@ ownership seam.
 
 ### Phase 1 — terms vocabulary and executable baseline
 
-- [ ] Pin the exact current transition topology for all four deal types, including payment failure,
+- [x] Pin the exact current transition topology for all four deal types, including payment failure,
   retry, late webhook, cancellation pending/failure, and settlement recovery paths.
-- [ ] Prove the two existing topology pairs: FlatFee equals VenueHire, and DoorSplit equals Versus;
+- [x] Prove the two existing topology pairs: FlatFee equals VenueHire, and DoorSplit equals Versus;
   keep capability/step differences characterized separately from graph equality.
-- [ ] Rename the current editable offer model from Deal to DealTerms across Domain, Contracts,
+- [x] Rename the current editable offer model from Deal to DealTerms across Domain, Contracts,
   Application, Infrastructure, seed data, and tests.
-- [ ] Rename `OpportunityEntity.DealId` to `DealTermsId`; preserve behaviour and the current module
+- [x] Rename `OpportunityEntity.DealId` to `DealTermsId`; preserve behaviour and the current module
   seam in this phase.
-- [ ] Keep the existing HTTP `deal` member and published frontend `Deal`-as-terms export at the boundary
+- [x] Keep the existing HTTP `deal` member and published frontend `Deal`-as-terms export at the boundary
   until Phase 2 expands their replacements; internal C# names use DealTerms immediately.
-- [ ] Keep the two module-local strategy builders until ownership moves; do not introduce a shared
+- [x] Keep the two module-local strategy builders until ownership moves; do not introduce a shared
   registry as an intermediate abstraction.
-- [ ] Update Deal/Concert architecture guidance so no new code uses the old ambiguous term while the
+- [x] Update Deal/Concert architecture guidance so no new code uses the old ambiguous term while the
   later phases are in flight.
 - [ ] Re-scaffold B2B initial migrations and run the focused Deal/Concert unit and integration gates.
 

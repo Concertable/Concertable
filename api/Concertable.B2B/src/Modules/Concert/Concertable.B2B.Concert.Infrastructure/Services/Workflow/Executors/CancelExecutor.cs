@@ -8,7 +8,7 @@ internal sealed class CancelExecutor : ICancelExecutor
 {
     private readonly ILifecycleTransitioner transitioner;
     private readonly IConcertWorkflowFactory workflows;
-    private readonly IDealResolver dealResolver;
+    private readonly IDealTermsResolver dealResolver;
     private readonly IConcertRepository concertRepository;
     private readonly IUnitOfWorkBehavior unitOfWork;
     private readonly IOutboxUnitOfWorkBehavior outbox;
@@ -16,7 +16,7 @@ internal sealed class CancelExecutor : ICancelExecutor
     public CancelExecutor(
         ILifecycleTransitioner transitioner,
         IConcertWorkflowFactory workflows,
-        IDealResolver dealResolver,
+        IDealTermsResolver dealResolver,
         IConcertRepository concertRepository,
         IUnitOfWorkBehavior unitOfWork,
         IOutboxUnitOfWorkBehavior outbox)

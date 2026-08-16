@@ -16,18 +16,18 @@ public sealed class DepositEscrowAcceptStepTests
 {
     private readonly Mock<IBookingService> bookingService;
     private readonly Mock<IBus> bus;
-    private readonly Mock<IDealAccessor> dealAccessor;
+    private readonly Mock<IDealTermsAccessor> dealTermsAccessor;
     private readonly DepositEscrowAcceptStep step;
 
     public DepositEscrowAcceptStepTests()
     {
         this.bookingService = new Mock<IBookingService>();
         this.bus = new Mock<IBus>();
-        this.dealAccessor = new Mock<IDealAccessor>();
+        this.dealTermsAccessor = new Mock<IDealTermsAccessor>();
         this.step = new DepositEscrowAcceptStep(
             bookingService.Object,
             bus.Object,
-            dealAccessor.Object,
+            dealTermsAccessor.Object,
             new Mock<ILogger<DepositEscrowAcceptStep>>().Object);
     }
 
@@ -60,7 +60,7 @@ public sealed class DepositEscrowAcceptStepTests
         this.bookingService
             .Setup(value => value.CreateStandardAsync(application))
             .ReturnsAsync(new StandardBookingDto(42));
-        this.dealAccessor.SetupGet(value => value.Deal).Returns(new VenueHireDeal { HireFee = 12.34m });
+        this.dealTermsAccessor.SetupGet(value => value.Terms).Returns(new VenueHireTerms { HireFee = 12.34m });
 
         await this.step.ExecuteAsync(application);
 

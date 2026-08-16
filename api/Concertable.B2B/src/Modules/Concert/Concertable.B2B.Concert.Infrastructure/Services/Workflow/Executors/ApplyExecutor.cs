@@ -15,7 +15,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
     private readonly IApplicationRepository applicationRepository;
     private readonly IOpportunityRepository opportunityRepository;
     private readonly IConcertWorkflowFactory workflows;
-    private readonly IDealResolver dealResolver;
+    private readonly IDealTermsResolver termsResolver;
     private readonly ITenantContext tenantContext;
     private readonly ICurrentUser currentUser;
     private readonly IClientContext clientContext;
@@ -26,7 +26,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
         IApplicationRepository applicationRepository,
         IOpportunityRepository opportunityRepository,
         IConcertWorkflowFactory workflows,
-        IDealResolver dealResolver,
+        IDealTermsResolver termsResolver,
         ITenantContext tenantContext,
         ICurrentUser currentUser,
         IClientContext clientContext,
@@ -36,7 +36,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
         this.applicationRepository = applicationRepository;
         this.opportunityRepository = opportunityRepository;
         this.workflows = workflows;
-        this.dealResolver = dealResolver;
+        this.termsResolver = termsResolver;
         this.tenantContext = tenantContext;
         this.currentUser = currentUser;
         this.clientContext = clientContext;
@@ -50,8 +50,8 @@ internal sealed class ApplyExecutor : IApplyExecutor
         string? paymentMethodId,
         ESignatureRequest eSignature)
     {
-        var deal = await dealResolver.ResolveByOpportunityIdAsync(opportunityId);
-        var workflow = workflows.Create(deal.DealType);
+        var terms = await termsResolver.ResolveByOpportunityIdAsync(opportunityId);
+        var workflow = workflows.Create(terms.DealType);
         var venueTenantId = await opportunityRepository.GetTenantIdByIdAsync(opportunityId);
         if (venueTenantId is null)
             return new ApplyApplicationError.OpportunityNotFound(opportunityId);
@@ -65,7 +65,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
             application = await paid.Apply.ApplyAsync(
                 artistId,
                 opportunityId,
-                deal.DealType,
+                terms.DealType,
                 paymentMethodId,
                 venueTenantId.Value,
                 artistTenantId);
@@ -75,7 +75,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
             application = await simple.Apply.ApplyAsync(
                 artistId,
                 opportunityId,
-                deal.DealType,
+                terms.DealType,
                 venueTenantId.Value,
                 artistTenantId);
         }
@@ -98,7 +98,7 @@ internal sealed class ApplyExecutor : IApplyExecutor
                 clientContext.UserAgent,
                 eSignature.SignatoryName,
                 eSignature.DrawnSignatureImage),
-            termsFingerprint.Calculate(deal, period));
+            termsFingerprint.Calculate(terms, period));
 
         application.NotifyCounterparty(ApplicationNotification.Applied);
         await applicationRepository.AddAsync(application);

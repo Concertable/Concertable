@@ -1,12 +1,13 @@
 using Concertable.B2B.Deal.Contracts;
 using Concertable.Contracts;
+using System.Text.Json.Serialization;
 
 namespace Concertable.B2B.Concert.Api.Responses;
 
 internal sealed record OpportunityResponse(
     int Id,
     int VenueId,
-    IDeal Deal,
+    [property: JsonPropertyName("deal")] IDealTerms Terms,
     DateTime StartDate,
     DateTime EndDate,
     IEnumerable<Genre> Genres,

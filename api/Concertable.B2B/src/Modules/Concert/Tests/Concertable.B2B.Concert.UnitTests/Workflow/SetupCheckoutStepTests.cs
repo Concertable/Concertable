@@ -17,11 +17,11 @@ public sealed class SetupCheckoutStepTests
     private readonly Guid venueManagerId = Guid.NewGuid();
     private readonly Guid artistTenantId = Guid.NewGuid();
     private readonly CheckoutSession session = new("seti_secret", "cs", "cus");
-    private readonly VenueHireDeal deal = new() { PaymentMethod = PaymentMethod.Cash, HireFee = 300 };
+    private readonly VenueHireTerms deal = new() { PaymentMethod = PaymentMethod.Cash, HireFee = 300 };
 
     private readonly Mock<IOpportunityRepository> opportunityRepository;
     private readonly Mock<IUserModule> userModule;
-    private readonly Mock<IDealAccessor> dealAccessor;
+    private readonly Mock<IDealTermsAccessor> dealTermsAccessor;
     private readonly Mock<IManagerPaymentOperationsClient> managerPaymentClient;
     private readonly Mock<ITenantContext> tenantContext;
     private readonly SetupCheckoutStep step;
@@ -32,7 +32,7 @@ public sealed class SetupCheckoutStepTests
     {
         this.opportunityRepository = new Mock<IOpportunityRepository>();
         this.userModule = new Mock<IUserModule>();
-        this.dealAccessor = new Mock<IDealAccessor>();
+        this.dealTermsAccessor = new Mock<IDealTermsAccessor>();
         this.managerPaymentClient = new Mock<IManagerPaymentOperationsClient>();
         this.tenantContext = new Mock<ITenantContext>();
 
@@ -42,7 +42,7 @@ public sealed class SetupCheckoutStepTests
         userModule
             .Setup(m => m.GetManagerByIdAsync(venueManagerId))
             .ReturnsAsync(Option.Some(new ManagerDto { Id = venueManagerId, Email = "venue@example.com" }));
-        dealAccessor.SetupGet(c => c.Deal).Returns(deal);
+        dealTermsAccessor.SetupGet(c => c.Terms).Returns(deal);
         tenantContext.SetupGet(c => c.TenantId).Returns(artistTenantId);
         managerPaymentClient
             .Setup(c => c.CreateSetupSessionAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()))
@@ -50,7 +50,7 @@ public sealed class SetupCheckoutStepTests
             .ReturnsAsync(session);
 
         this.step = new SetupCheckoutStep(
-            opportunityRepository.Object, userModule.Object, dealAccessor.Object, managerPaymentClient.Object, tenantContext.Object);
+            opportunityRepository.Object, userModule.Object, dealTermsAccessor.Object, managerPaymentClient.Object, tenantContext.Object);
     }
 
     [Fact]

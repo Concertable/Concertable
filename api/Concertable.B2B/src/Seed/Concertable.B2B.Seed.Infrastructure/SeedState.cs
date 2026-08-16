@@ -1,4 +1,4 @@
-﻿using Concertable.B2B.Artist.Domain.Entities;
+using Concertable.B2B.Artist.Domain.Entities;
 using Concertable.B2B.Concert.Domain.Entities;
 using Concertable.B2B.Deal.Domain.Entities;
 using Concertable.B2B.Seed.Contracts;
@@ -46,26 +46,26 @@ public sealed class SeedState
     public IReadOnlyList<ArtistEntity> Artists { get; }
     public IReadOnlyList<VenueEntity> Venues { get; }
 
-    public IReadOnlyList<DealEntity> Deals { get; }
+    public IReadOnlyList<DealTermsEntity> DealTerms { get; }
     public IReadOnlyList<OpportunityEntity> Opportunities { get; }
     public IReadOnlyList<BookingEntity> Bookings { get; }
     public IReadOnlyList<ApplicationEntity> Applications { get; }
     public IReadOnlyList<ConcertEntity> Concerts { get; }
 
-    public FlatFeeDealEntity FlatFeeAppDeal { get; }
-    public FlatFeeDealEntity ConfirmedAppDeal { get; }
-    public FlatFeeDealEntity AwaitingPaymentAppDeal { get; }
-    public VersusDealEntity VersusAppDeal { get; }
-    public DoorSplitDealEntity DoorSplitAppDeal { get; }
-    public VenueHireDealEntity VenueHireAppDeal { get; }
-    public FlatFeeDealEntity PostedFlatFeeAppDeal { get; }
-    public DoorSplitDealEntity PostedDoorSplitAppDeal { get; }
-    public VersusDealEntity PostedVersusAppDeal { get; }
-    public VenueHireDealEntity PostedVenueHireAppDeal { get; }
-    public VersusDealEntity PastVersusAppDeal { get; }
-    public FlatFeeDealEntity PastFlatFeeAppDeal { get; }
-    public VenueHireDealEntity PastVenueHireAppDeal { get; }
-    public DoorSplitDealEntity PastDoorSplitAppDeal { get; }
+    public FlatFeeTermsEntity FlatFeeAppDeal { get; }
+    public FlatFeeTermsEntity ConfirmedAppDeal { get; }
+    public FlatFeeTermsEntity AwaitingPaymentAppDeal { get; }
+    public VersusTermsEntity VersusAppDeal { get; }
+    public DoorSplitTermsEntity DoorSplitAppDeal { get; }
+    public VenueHireTermsEntity VenueHireAppDeal { get; }
+    public FlatFeeTermsEntity PostedFlatFeeAppDeal { get; }
+    public DoorSplitTermsEntity PostedDoorSplitAppDeal { get; }
+    public VersusTermsEntity PostedVersusAppDeal { get; }
+    public VenueHireTermsEntity PostedVenueHireAppDeal { get; }
+    public VersusTermsEntity PastVersusAppDeal { get; }
+    public FlatFeeTermsEntity PastFlatFeeAppDeal { get; }
+    public VenueHireTermsEntity PastVenueHireAppDeal { get; }
+    public DoorSplitTermsEntity PastDoorSplitAppDeal { get; }
 
     public OpportunityEntity FreshVenueHireOpportunity { get; }
 
@@ -177,86 +177,86 @@ public sealed class SeedState
             artist.TenantId = TenantSeedIds.For(artist.UserId);
         Artist = Artists[0];
 
-        ConfirmedAppDeal = FlatFeeDealFactory.Create(6, 200m);
-        PostedVenueHireAppDeal = VenueHireDealFactory.Create(21, 300m);
-        PostedFlatFeeAppDeal = FlatFeeDealFactory.Create(31, 200m);
-        AwaitingPaymentAppDeal = FlatFeeDealFactory.Create(33, 150m);
-        DoorSplitAppDeal = DoorSplitDealFactory.Create(50, 70m);
-        VersusAppDeal = VersusDealFactory.Create(51, 100m, 70m);
-        PostedDoorSplitAppDeal = DoorSplitDealFactory.Create(53, 65m);
-        PostedVersusAppDeal = VersusDealFactory.Create(54, 120m, 60m);
-        FlatFeeAppDeal = FlatFeeDealFactory.Create(55, 180m);
-        VenueHireAppDeal = VenueHireDealFactory.Create(52, 170m);
-        PastVersusAppDeal = VersusDealFactory.Create(64, 100m, 70m);
-        PastFlatFeeAppDeal = FlatFeeDealFactory.Create(65, 200m);
-        PastVenueHireAppDeal = VenueHireDealFactory.Create(66, 300m);
-        PastDoorSplitAppDeal = DoorSplitDealFactory.Create(67, 70m);
+        ConfirmedAppDeal = FlatFeeTermsFactory.Create(6, 200m);
+        PostedVenueHireAppDeal = VenueHireTermsFactory.Create(21, 300m);
+        PostedFlatFeeAppDeal = FlatFeeTermsFactory.Create(31, 200m);
+        AwaitingPaymentAppDeal = FlatFeeTermsFactory.Create(33, 150m);
+        DoorSplitAppDeal = DoorSplitTermsFactory.Create(50, 70m);
+        VersusAppDeal = VersusTermsFactory.Create(51, 100m, 70m);
+        PostedDoorSplitAppDeal = DoorSplitTermsFactory.Create(53, 65m);
+        PostedVersusAppDeal = VersusTermsFactory.Create(54, 120m, 60m);
+        FlatFeeAppDeal = FlatFeeTermsFactory.Create(55, 180m);
+        VenueHireAppDeal = VenueHireTermsFactory.Create(52, 170m);
+        PastVersusAppDeal = VersusTermsFactory.Create(64, 100m, 70m);
+        PastFlatFeeAppDeal = FlatFeeTermsFactory.Create(65, 200m);
+        PastVenueHireAppDeal = VenueHireTermsFactory.Create(66, 300m);
+        PastDoorSplitAppDeal = DoorSplitTermsFactory.Create(67, 70m);
 
-        Deals =
+        DealTerms =
         [
-            FlatFeeDealFactory.Create(1, 150m),
-            FlatFeeDealFactory.Create(2, 120m),
-            DoorSplitDealFactory.Create(3, 60m),
-            VersusDealFactory.Create(4, 80m, 50m),
-            FlatFeeDealFactory.Create(5, 180m),
+            FlatFeeTermsFactory.Create(1, 150m),
+            FlatFeeTermsFactory.Create(2, 120m),
+            DoorSplitTermsFactory.Create(3, 60m),
+            VersusTermsFactory.Create(4, 80m, 50m),
+            FlatFeeTermsFactory.Create(5, 180m),
             ConfirmedAppDeal,                                                       // 6
-            FlatFeeDealFactory.Create(7, 160m),
-            FlatFeeDealFactory.Create(8, 140m),
-            DoorSplitDealFactory.Create(9, 70m),
-            VenueHireDealFactory.Create(10, 250m),
-            FlatFeeDealFactory.Create(11, 170m),
-            VersusDealFactory.Create(12, 100m, 60m),
-            FlatFeeDealFactory.Create(13, 150m),
-            DoorSplitDealFactory.Create(14, 65m),
-            FlatFeeDealFactory.Create(15, 190m),
-            VenueHireDealFactory.Create(16, 220m),
-            FlatFeeDealFactory.Create(17, 155m),
-            VersusDealFactory.Create(18, 90m, 55m),
-            DoorSplitDealFactory.Create(19, 60m),
-            FlatFeeDealFactory.Create(20, 165m),
+            FlatFeeTermsFactory.Create(7, 160m),
+            FlatFeeTermsFactory.Create(8, 140m),
+            DoorSplitTermsFactory.Create(9, 70m),
+            VenueHireTermsFactory.Create(10, 250m),
+            FlatFeeTermsFactory.Create(11, 170m),
+            VersusTermsFactory.Create(12, 100m, 60m),
+            FlatFeeTermsFactory.Create(13, 150m),
+            DoorSplitTermsFactory.Create(14, 65m),
+            FlatFeeTermsFactory.Create(15, 190m),
+            VenueHireTermsFactory.Create(16, 220m),
+            FlatFeeTermsFactory.Create(17, 155m),
+            VersusTermsFactory.Create(18, 90m, 55m),
+            DoorSplitTermsFactory.Create(19, 60m),
+            FlatFeeTermsFactory.Create(20, 165m),
             PostedVenueHireAppDeal,                                                 // 21
-            FlatFeeDealFactory.Create(22, 175m),
-            DoorSplitDealFactory.Create(23, 70m),
-            VersusDealFactory.Create(24, 110m, 60m),
-            FlatFeeDealFactory.Create(25, 185m),
-            FlatFeeDealFactory.Create(26, 195m),
-            DoorSplitDealFactory.Create(27, 65m),
-            VenueHireDealFactory.Create(28, 280m),
-            VersusDealFactory.Create(29, 95m, 55m),
-            FlatFeeDealFactory.Create(30, 160m),
+            FlatFeeTermsFactory.Create(22, 175m),
+            DoorSplitTermsFactory.Create(23, 70m),
+            VersusTermsFactory.Create(24, 110m, 60m),
+            FlatFeeTermsFactory.Create(25, 185m),
+            FlatFeeTermsFactory.Create(26, 195m),
+            DoorSplitTermsFactory.Create(27, 65m),
+            VenueHireTermsFactory.Create(28, 280m),
+            VersusTermsFactory.Create(29, 95m, 55m),
+            FlatFeeTermsFactory.Create(30, 160m),
             PostedFlatFeeAppDeal,                                                   // 31
-            FlatFeeDealFactory.Create(32, 140m),
+            FlatFeeTermsFactory.Create(32, 140m),
             AwaitingPaymentAppDeal,                                                 // 33
-            DoorSplitDealFactory.Create(34, 70m),
-            VersusDealFactory.Create(35, 100m, 60m),
-            FlatFeeDealFactory.Create(36, 170m),
-            VenueHireDealFactory.Create(37, 240m),
-            DoorSplitDealFactory.Create(38, 60m),
-            FlatFeeDealFactory.Create(39, 180m),
-            VersusDealFactory.Create(40, 120m, 65m),
-            FlatFeeDealFactory.Create(41, 155m),
-            DoorSplitDealFactory.Create(42, 70m),
-            VenueHireDealFactory.Create(43, 260m),
-            FlatFeeDealFactory.Create(44, 190m),
-            VersusDealFactory.Create(45, 105m, 55m),
-            FlatFeeDealFactory.Create(46, 165m),
-            DoorSplitDealFactory.Create(47, 65m),
-            VenueHireDealFactory.Create(48, 290m),
-            VersusDealFactory.Create(49, 85m, 50m),
+            DoorSplitTermsFactory.Create(34, 70m),
+            VersusTermsFactory.Create(35, 100m, 60m),
+            FlatFeeTermsFactory.Create(36, 170m),
+            VenueHireTermsFactory.Create(37, 240m),
+            DoorSplitTermsFactory.Create(38, 60m),
+            FlatFeeTermsFactory.Create(39, 180m),
+            VersusTermsFactory.Create(40, 120m, 65m),
+            FlatFeeTermsFactory.Create(41, 155m),
+            DoorSplitTermsFactory.Create(42, 70m),
+            VenueHireTermsFactory.Create(43, 260m),
+            FlatFeeTermsFactory.Create(44, 190m),
+            VersusTermsFactory.Create(45, 105m, 55m),
+            FlatFeeTermsFactory.Create(46, 165m),
+            DoorSplitTermsFactory.Create(47, 65m),
+            VenueHireTermsFactory.Create(48, 290m),
+            VersusTermsFactory.Create(49, 85m, 50m),
             DoorSplitAppDeal,                                                       // 50
             VersusAppDeal,                                                          // 51
             VenueHireAppDeal,                                                       // 52
             PostedDoorSplitAppDeal,                                                 // 53
             PostedVersusAppDeal,                                                    // 54
             FlatFeeAppDeal,                                                         // 55
-            DoorSplitDealFactory.Create(56, 70m),
-            VersusDealFactory.Create(57, 110m, 65m),
-            FlatFeeDealFactory.Create(58, 150m),
-            VenueHireDealFactory.Create(59, 300m),
-            FlatFeeDealFactory.Create(60, 200m),
-            DoorSplitDealFactory.Create(61, 70m),
-            VersusDealFactory.Create(62, 100m, 60m),
-            VenueHireDealFactory.Create(63, 250m),
+            DoorSplitTermsFactory.Create(56, 70m),
+            VersusTermsFactory.Create(57, 110m, 65m),
+            FlatFeeTermsFactory.Create(58, 150m),
+            VenueHireTermsFactory.Create(59, 300m),
+            FlatFeeTermsFactory.Create(60, 200m),
+            DoorSplitTermsFactory.Create(61, 70m),
+            VersusTermsFactory.Create(62, 100m, 60m),
+            VenueHireTermsFactory.Create(63, 250m),
             PastVersusAppDeal,                                                      // 64
             PastFlatFeeAppDeal,                                                     // 65
             PastVenueHireAppDeal,                                                   // 66
@@ -289,7 +289,7 @@ public sealed class SeedState
                 i + 1,
                 venueId,
                 new DateRange(now.AddDays(days), now.AddDays(days).AddHours(hours)),
-                dealId: Deals[i].Id));
+                dealTermsId: DealTerms[i].Id));
         }
         Opportunities = opps;
         FreshVenueHireOpportunity = opps[62];
@@ -316,9 +316,9 @@ public sealed class SeedState
         foreach (var opportunity in Opportunities)
             opportunity.TenantId = tenantByVenueId[opportunity.VenueId];
         var tenantByDealId = Opportunities
-            .GroupBy(o => o.DealId)
+            .GroupBy(o => o.DealTermsId)
             .ToDictionary(g => g.Key, g => g.First().TenantId);
-        foreach (var deal in Deals)
+        foreach (var deal in DealTerms)
             if (tenantByDealId.TryGetValue(deal.Id, out var tenantId))
                 deal.TenantId = tenantId;
 
@@ -379,10 +379,10 @@ public sealed class SeedState
         UpcomingFlatFeeApp = ApplicationFactory.Booked(2, 58, Bookings[12]);
         UpcomingVenueHireApp = ApplicationFactory.BookedPrepaid(1, 59, Bookings[13]);
 
-        DoorSplitApp = ApplicationFactory.Create(1, Opportunities[55].Id, Deals[55].DealType);
-        VersusApp = ApplicationFactory.Create(1, Opportunities[56].Id, Deals[56].DealType);
-        VenueHireApp = ApplicationFactory.CreatePrepaid(1, Opportunities[51].Id, Deals[51].DealType);
-        FlatFeeApp = ApplicationFactory.Create(1, Opportunities[54].Id, Deals[54].DealType);
+        DoorSplitApp = ApplicationFactory.Create(1, Opportunities[55].Id, DealTerms[55].DealType);
+        VersusApp = ApplicationFactory.Create(1, Opportunities[56].Id, DealTerms[56].DealType);
+        VenueHireApp = ApplicationFactory.CreatePrepaid(1, Opportunities[51].Id, DealTerms[51].DealType);
+        FlatFeeApp = ApplicationFactory.Create(1, Opportunities[54].Id, DealTerms[54].DealType);
 
         Applications =
         [
@@ -490,7 +490,7 @@ public sealed class SeedState
         var artistTenantById = Artists.ToDictionary(a => a.Id, a => a.TenantId);
         foreach (var application in Applications)
         {
-            var dealType = Deals[Opportunities[application.OpportunityId - 1].DealId - 1].DealType;
+            var dealType = DealTerms[Opportunities[application.OpportunityId - 1].DealTermsId - 1].DealType;
             application.With(nameof(ApplicationEntity.DealType), dealType);
 
             application.With(

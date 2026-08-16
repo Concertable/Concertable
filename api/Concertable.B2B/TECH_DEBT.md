@@ -96,8 +96,8 @@ the Versus concert was a real gap the old simulator catalog (concerts 13/12/10) 
 ### `deal.Fee`/`HireFee` are `decimal` domain fields lifted to `Money` at the payment boundary
 
 The money value-type migration (PR1 #390 → sync #393) made every
-payment-client + `ISettlementAmountResolver` signature `Money`-typed, but `FlatFeeDeal.Fee` /
-`VenueHireDeal.HireFee` (contracts + `*DealEntity`) stayed `decimal`. The workflow steps (`HoldCheckoutStep`,
+payment-client + `ISettlementAmountResolver` signature `Money`-typed, but `FlatFeeTerms.Fee` /
+`VenueHireTerms.HireFee` (contracts + `*DealTermsEntity`) stayed `decimal`. The workflow steps (`HoldCheckoutStep`,
 `Capture`/`DepositEscrowAcceptStep`) lift them with `Money.Gbp(deal.Fee)` at the call sites — a legitimate
 boundary conversion (same pattern as Customer's `Money.Gbp(concert.Price * qty)`), but it assumes GBP and keeps
 a money value untyped in the domain, inconsistent with `EscrowEntity.Amount` which is a `Money` EF

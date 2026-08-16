@@ -10,7 +10,7 @@ namespace Concertable.B2B.Concert.Infrastructure.Services.Workflow.Steps;
 internal sealed class CaptureEscrowAcceptStep(
     IBookingService bookingService,
     IBus bus,
-    IDealAccessor dealAccessor,
+    IDealTermsAccessor dealTermsAccessor,
     IManagerPaymentOperationsClient managerPaymentClient,
     ILogger<CaptureEscrowAcceptStep> logger) : ISimpleAcceptStep
 {
@@ -25,7 +25,7 @@ internal sealed class CaptureEscrowAcceptStep(
 
     private async Task StageAsync(ApplicationEntity application, int bookingId, CancellationToken ct)
     {
-        var deal = (FlatFeeDeal)dealAccessor.Deal;
+        var deal = (FlatFeeTerms)dealTermsAccessor.Terms;
         var paymentIntentId = await managerPaymentClient.FindHeldIntentAsync(application.VenueTenantId, application.Id);
 
         logger.AcceptingFlatFeeApplication(

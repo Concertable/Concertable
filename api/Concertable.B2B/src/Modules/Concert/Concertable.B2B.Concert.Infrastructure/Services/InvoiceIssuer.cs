@@ -8,7 +8,7 @@ internal sealed class InvoiceIssuer : IInvoiceIssuer
 {
     private readonly ISettlementAmountResolver settlementAmountResolver;
     private readonly IDealPayeeResolver dealPayeeResolver;
-    private readonly IDealAccessor dealAccessor;
+    private readonly IDealTermsAccessor dealTermsAccessor;
     private readonly ITenantModule tenantModule;
     private readonly IInvoiceRepository invoiceRepository;
     private readonly ISequenceRepository<InvoiceSequenceEntity> sequenceRepository;
@@ -17,7 +17,7 @@ internal sealed class InvoiceIssuer : IInvoiceIssuer
     public InvoiceIssuer(
         ISettlementAmountResolver settlementAmountResolver,
         IDealPayeeResolver dealPayeeResolver,
-        IDealAccessor dealAccessor,
+        IDealTermsAccessor dealTermsAccessor,
         ITenantModule tenantModule,
         IInvoiceRepository invoiceRepository,
         ISequenceRepository<InvoiceSequenceEntity> sequenceRepository,
@@ -25,7 +25,7 @@ internal sealed class InvoiceIssuer : IInvoiceIssuer
     {
         this.settlementAmountResolver = settlementAmountResolver;
         this.dealPayeeResolver = dealPayeeResolver;
-        this.dealAccessor = dealAccessor;
+        this.dealTermsAccessor = dealTermsAccessor;
         this.tenantModule = tenantModule;
         this.invoiceRepository = invoiceRepository;
         this.sequenceRepository = sequenceRepository;
@@ -34,7 +34,7 @@ internal sealed class InvoiceIssuer : IInvoiceIssuer
 
     public async Task IssueAsync(ConcertEntity concert, CancellationToken ct = default)
     {
-        var gross = await settlementAmountResolver.ResolveGrossAsync(concert.Id, dealAccessor.Deal, ct);
+        var gross = await settlementAmountResolver.ResolveGrossAsync(concert.Id, dealTermsAccessor.Terms, ct);
 
         var supplierTenantId = dealPayeeResolver.ResolveSettlementTenantId(concert);
         var customerTenantId = dealPayeeResolver.ResolveTicketTenantId(concert);

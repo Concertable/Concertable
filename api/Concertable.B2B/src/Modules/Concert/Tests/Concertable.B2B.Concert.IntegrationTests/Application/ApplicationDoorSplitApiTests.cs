@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Concertable.B2B.Concert.Application.DTOs;
 using Concertable.B2B.Concert.Application.Responses;
 using Concertable.B2B.Concert.Api.Responses;
@@ -59,7 +59,7 @@ public sealed class ApplicationDoorSplitApiTests : IAsyncLifetime
         // Arrange — venue manager creates a fresh DoorSplit opportunity
         var venueClient = fixture.CreateClient(fixture.SeedState.VenueManager1);
         var oppResponse = await venueClient.PostAsync("/api/Opportunity",
-            BuildRequest(new DoorSplitDeal { PaymentMethod = PaymentMethod.Cash, ArtistDoorPercent = 70 }, fixture.SeedNow));
+            BuildRequest(new DoorSplitTerms { PaymentMethod = PaymentMethod.Cash, ArtistDoorPercent = 70 }, fixture.SeedNow));
         var opportunity = await oppResponse.Content.ReadAsync<OpportunityResponse>();
 
         // Act — artist applies directly with no payment method

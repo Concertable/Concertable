@@ -1,4 +1,4 @@
-﻿using Concertable.B2B.Concert.Application.Responses;
+using Concertable.B2B.Concert.Application.Responses;
 using Concertable.B2B.Concert.Domain.Entities;
 using Concertable.B2B.Concert.Domain.Lifecycle;
 using Concertable.B2B.Concert.Domain.ReadModels;
@@ -21,7 +21,7 @@ internal interface IApplicationRepository : IVenueArtistTenantScopedRepository<A
     Task<(ArtistReadModel, VenueReadModel)?> GetArtistAndVenueByIdAsync(int id);
     Task<(Guid VenueTenantId, Guid ArtistTenantId)?> GetTenantPairByIdAsync(int applicationId);
     Task RejectAllExceptAsync(int opportunityId, int applicationId);
-    Task<int?> GetDealIdByIdAsync(int applicationId);
+    Task<int?> GetDealTermsIdByIdAsync(int applicationId);
     Task<PayeeSummary?> GetArtistPayeeAsync(int applicationId);
     Task<Guid?> GetVenueManagerIdAsync(int applicationId);
 }

@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDealModule(configuration);
         services.AddControllers()
-            .AddInternalControllers(typeof(DealController).Assembly);
+            .AddInternalControllers(typeof(DealTermsController).Assembly);
         return services;
     }
 }

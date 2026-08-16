@@ -11,27 +11,27 @@ internal sealed class PayoutFinishStep : IFinishStep
 {
     private readonly IBookingService bookingService;
     private readonly ISettlementAmountResolver settlementAmountResolver;
-    private readonly IDealAccessor dealAccessor;
+    private readonly IDealTermsAccessor dealTermsAccessor;
     private readonly IManagerPaymentOperationsClient managerPaymentClient;
     private readonly ILogger<PayoutFinishStep> logger;
 
     public PayoutFinishStep(
         IBookingService bookingService,
         ISettlementAmountResolver settlementAmountResolver,
-        IDealAccessor dealAccessor,
+        IDealTermsAccessor dealTermsAccessor,
         IManagerPaymentOperationsClient managerPaymentClient,
         ILogger<PayoutFinishStep> logger)
     {
         this.bookingService = bookingService;
         this.settlementAmountResolver = settlementAmountResolver;
-        this.dealAccessor = dealAccessor;
+        this.dealTermsAccessor = dealTermsAccessor;
         this.managerPaymentClient = managerPaymentClient;
         this.logger = logger;
     }
 
     public async Task<UnitResult<FinishConcertError>> ExecuteAsync(int concertId, CancellationToken ct = default)
     {
-        var artistShare = await settlementAmountResolver.ResolveGrossAsync(concertId, dealAccessor.Deal);
+        var artistShare = await settlementAmountResolver.ResolveGrossAsync(concertId, dealTermsAccessor.Terms);
 
         logger.ArtistShareCalculated(concertId, artistShare.Amount);
         var settlement = await bookingService.GetSettlementByConcertIdAsync(concertId);

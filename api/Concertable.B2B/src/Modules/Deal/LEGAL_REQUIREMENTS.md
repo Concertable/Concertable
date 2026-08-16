@@ -100,7 +100,7 @@ requirement, but it blocks the contract types that *are* the USP.)
 ## 2. Signed contract + e-signature — ABSENT
 **Legal basis:** contract law; Electronic Communications Act 2000; retained eIDAS.
 The `Accept` lifecycle transition is *implicit* consent that produces **no signed
-record**. Concertable has a sophisticated *settlement* model (`DealEntity`) but no
+record**. Concertable has a sophisticated *settlement* model (`DealTermsEntity`) but no
 legal *contract artifact* — the thing GigPig/GigXchange market as "contract signing". This
 matters **more** here than for them: money moves in multiple directions (incl. artist-pays-
 venue VenueHire), so evidence of what was agreed carries higher stakes. It is also the
@@ -108,10 +108,10 @@ venue VenueHire), so evidence of what was agreed carries higher stakes. It is al
 item 6 (cancellation terms are stated *and consented to* here), item 7 (terms acceptance),
 and item 9 (the audit trail of who agreed to what).
 **Build:**
-- A `ContractEntity` — the binding artifact, distinct from the `DealEntity` money-terms it
+- A `ContractEntity` — the binding artifact, distinct from the `DealTermsEntity` money-terms it
   records. It **snapshots** the agreed terms at Accept: both parties + details,
   deal type + numbers, date, cancellation terms, platform-terms version. Snapshot, **not**
-  an FK to the live deal — `DealEntity` can be edited later and the contract must
+  an FK to the live deal — `DealTermsEntity` can be edited later and the contract must
   freeze what was agreed (the existing purchase-time-snapshot convention).
 - Capture affirmative consent. **Tier 1 (do first): click-wrap** — an "I agree" gate wired
   into the existing `AcceptExecutor` / checkout step, recording identity + UTC timestamp
@@ -123,7 +123,7 @@ and item 9 (the audit trail of who agreed to what).
 - **Tier 2 (later / optional):** full e-signature (drawn/typed, or DocuSign / Dropbox Sign /
   Yousign). Overkill for grassroots bookings — add only if a customer demands it.
 **Lives in:** the Concert module (owns the `Accept` transition + the parties); reads terms
-via `IDealModule` to build the snapshot.
+via `IDealTermsModule` to build the snapshot.
 
 ---
 

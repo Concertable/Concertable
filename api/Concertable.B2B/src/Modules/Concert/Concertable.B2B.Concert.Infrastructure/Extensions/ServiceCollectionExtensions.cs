@@ -83,7 +83,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOpportunityService, OpportunityService>();
         services.AddScoped<IOpportunitySyncer>(sp => new Sync.OpportunitySyncer(
             sp.GetRequiredService<IOpportunityRepository>(),
-            sp.GetRequiredService<IDealModule>()));
+            sp.GetRequiredService<IDealTermsModule>()));
         services.AddScoped<IApplicationService, ApplicationService>();
         services.AddScoped<IApplicationNotifier, ApplicationNotifier>();
         services.AddScoped<IConcertDashboardService, ConcertDashboardService>();
@@ -101,9 +101,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IClientContext, ClientContextAccessor>();
         services.AddConcertDealStrategies();
 
-        services.AddScoped<DealAccessor>();
-        services.AddScoped<IDealAccessor>(sp => sp.GetRequiredService<DealAccessor>());
-        services.AddScoped<IDealResolver>(sp => sp.GetRequiredService<DealAccessor>());
+        services.AddScoped<DealTermsAccessor>();
+        services.AddScoped<IDealTermsAccessor>(sp => sp.GetRequiredService<DealTermsAccessor>());
+        services.AddScoped<IDealTermsResolver>(sp => sp.GetRequiredService<DealTermsAccessor>());
 
         // Business-rule validators (interfaces in Concert.Application, impls in Concert.Infrastructure.Validators)
         services.AddSingleton<IConcertValidator, ConcertValidator>();
@@ -204,7 +204,7 @@ public static class ServiceCollectionExtensions
         return services.AddConcertDealStrategies(strategies =>
         {
             strategies.For(DealType.FlatFee)
-                .AddSingleton<IDealTerms, FlatFeeDealTerms>()
+                .AddSingleton<IDealTermsFormatter, FlatFeeTermsFormatter>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, FlatFeePaymentAmountMapper>()
                 .AddSingleton<ISettlementAmountResolver, FlatFeeSettlementAmount>()
@@ -219,7 +219,7 @@ public static class ServiceCollectionExtensions
                     .WithApplicationCancel());
 
             strategies.For(DealType.DoorSplit)
-                .AddSingleton<IDealTerms, DoorSplitDealTerms>()
+                .AddSingleton<IDealTermsFormatter, DoorSplitTermsFormatter>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, DoorSplitPaymentAmountMapper>()
                 .AddScoped<ISettlementAmountResolver, DoorSplitSettlementAmount>()
@@ -235,7 +235,7 @@ public static class ServiceCollectionExtensions
                     .WithApplicationCancel());
 
             strategies.For(DealType.Versus)
-                .AddSingleton<IDealTerms, VersusDealTerms>()
+                .AddSingleton<IDealTermsFormatter, VersusTermsFormatter>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, VersusPaymentAmountMapper>()
                 .AddScoped<ISettlementAmountResolver, VersusSettlementAmount>()
@@ -251,7 +251,7 @@ public static class ServiceCollectionExtensions
                     .WithApplicationCancel());
 
             strategies.For(DealType.VenueHire)
-                .AddSingleton<IDealTerms, VenueHireDealTerms>()
+                .AddSingleton<IDealTermsFormatter, VenueHireTermsFormatter>()
                 .AddSingleton<IDealPayeeResolver, ArtistPaysVenueDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, VenueHirePaymentAmountMapper>()
                 .AddSingleton<ISettlementAmountResolver, VenueHireSettlementAmount>()
@@ -265,7 +265,7 @@ public static class ServiceCollectionExtensions
                     .WithCancel<RefundEscrowStep>()
                     .WithApplicationCancel());
 
-            strategies.RequireAll<IDealTerms>();
+            strategies.RequireAll<IDealTermsFormatter>();
             strategies.RequireAll<IDealPayeeResolver>();
             strategies.RequireAll<IPaymentAmountMapper>();
             strategies.RequireAll<ISettlementAmountResolver>();

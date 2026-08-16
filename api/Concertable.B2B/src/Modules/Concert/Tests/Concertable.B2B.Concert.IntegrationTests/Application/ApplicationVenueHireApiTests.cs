@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Concertable.B2B.Concert.Application.DTOs;
 using Concertable.B2B.Concert.Application.Requests;
 using Concertable.B2B.Concert.Application.Responses;
@@ -71,7 +71,7 @@ public sealed class ApplicationVenueHireApiTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddMonths(13),
             EndDate = DateTime.UtcNow.AddMonths(13).AddHours(3),
             Genres = [Genre.Rock],
-            Deal = new VenueHireDeal { PaymentMethod = PaymentMethod.Cash, HireFee = 250m }
+            Terms = new VenueHireTerms { PaymentMethod = PaymentMethod.Cash, HireFee = 250m }
         };
         var oppResponse = await venueClient.PostAsync("/api/Opportunity", oppRequest);
         var opportunity = await oppResponse.Content.ReadAsync<OpportunityResponse>();
@@ -209,7 +209,7 @@ public sealed class ApplicationVenueHireApiTests : IAsyncLifetime
             StartDate = DateTime.UtcNow.AddMonths(13),
             EndDate = DateTime.UtcNow.AddMonths(13).AddHours(3),
             Genres = [Genre.Rock],
-            Deal = new VenueHireDeal { PaymentMethod = PaymentMethod.Cash, HireFee = 250m }
+            Terms = new VenueHireTerms { PaymentMethod = PaymentMethod.Cash, HireFee = 250m }
         };
         var oppResponse = await venueClient.PostAsync("/api/Opportunity", oppRequest);
         var opportunity = await oppResponse.Content.ReadAsync<OpportunityResponse>();

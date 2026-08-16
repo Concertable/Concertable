@@ -27,10 +27,10 @@ internal sealed class ApplicationMapper : IApplicationMapper
     {
         var applicationList = applications.ToList();
         var opportunityDtos = await opportunityMapper.ToDtosAsync(applicationList.Select(a => a.Opportunity));
-        var dealIds = await contracts.GetContractIdsByApplicationIdsAsync(applicationList.Select(a => a.Id).ToList());
+        var dealTermsIds = await contracts.GetContractIdsByApplicationIdsAsync(applicationList.Select(a => a.Id).ToList());
 
         return applicationList.Zip(opportunityDtos, (a, opp) =>
             new ApplicationDto(a.Id, a.ToArtistSummary(), opp, a.State.ToStatus(), a.State,
-                dealIds.TryGetValue(a.Id, out var id) ? id : null)).ToList();
+                dealTermsIds.TryGetValue(a.Id, out var id) ? id : null)).ToList();
     }
 }

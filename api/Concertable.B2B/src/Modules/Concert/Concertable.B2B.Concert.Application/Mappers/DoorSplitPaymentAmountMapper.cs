@@ -5,9 +5,9 @@ namespace Concertable.B2B.Concert.Application.Mappers;
 
 internal sealed class DoorSplitPaymentAmountMapper : IPaymentAmountMapper
 {
-    public IPaymentAmount ToPaymentAmount(IDeal deal)
+    public IPaymentAmount ToPaymentAmount(IDealTerms terms)
     {
-        var c = (DoorSplitDeal)deal;
+        var c = (DoorSplitTerms)terms;
         return new DoorSharePayment(c.ArtistDoorPercent);
     }
 }

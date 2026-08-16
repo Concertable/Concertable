@@ -19,7 +19,7 @@ public sealed class FinishExecutorTests
         this.executor = new FinishExecutor(
             Mock.Of<ILifecycleTransitioner>(),
             Mock.Of<IConcertWorkflowFactory>(),
-            Mock.Of<IDealResolver>(),
+            Mock.Of<IDealTermsResolver>(),
             this.concertRepository.Object,
             Mock.Of<IDealPayeeResolver>(),
             Mock.Of<IInvoiceIssuer>(),

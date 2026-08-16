@@ -91,11 +91,11 @@ internal sealed class ConcertRepository : Repository<ConcertEntity>, IConcertRep
             .ToListAsync();
     }
 
-    public Task<int?> GetDealIdByIdAsync(int concertId)
+    public Task<int?> GetDealTermsIdByIdAsync(int concertId)
     {
         return context.Concerts
             .Where(c => c.Id == concertId)
-            .Select(c => (int?)c.Booking.Application.Opportunity.DealId)
+            .Select(c => (int?)c.Booking.Application.Opportunity.DealTermsId)
             .FirstOrDefaultAsync();
     }
 

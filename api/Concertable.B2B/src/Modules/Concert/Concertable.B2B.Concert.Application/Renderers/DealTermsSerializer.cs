@@ -5,13 +5,13 @@ namespace Concertable.B2B.Concert.Application.Renderers;
 
 internal sealed class DealTermsSerializer : IDealTermsSerializer
 {
-    private readonly IConcertDealStrategyFactory<IDealTerms> terms;
+    private readonly IConcertDealStrategyFactory<IDealTermsFormatter> formatters;
 
-    public DealTermsSerializer(IConcertDealStrategyFactory<IDealTerms> terms)
+    public DealTermsSerializer(IConcertDealStrategyFactory<IDealTermsFormatter> formatters)
     {
-        this.terms = terms;
+        this.formatters = formatters;
     }
 
-    public string Serialize(IDeal deal) =>
-        terms.Create(deal.DealType).Serialize(deal);
+    public string Serialize(IDealTerms terms) =>
+        formatters.Create(terms.DealType).Serialize(terms);
 }

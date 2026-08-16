@@ -23,7 +23,7 @@ namespace Concertable.B2B.Deal.Infrastructure.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -39,7 +39,7 @@ namespace Concertable.B2B.Deal.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Deals", "deal");
+                    b.ToTable("DealTerms", "deal");
 
                     b.UseTptMappingStrategy();
                 });
@@ -113,39 +113,39 @@ namespace Concertable.B2B.Deal.Infrastructure.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DoorSplitDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DoorSplitTermsEntity", b =>
                 {
-                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealEntity");
+                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity");
 
                     b.Property<decimal>("ArtistDoorPercent")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("DoorSplitDeals", "deal");
+                    b.ToTable("DoorSplitTerms", "deal");
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.FlatFeeDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.FlatFeeTermsEntity", b =>
                 {
-                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealEntity");
+                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity");
 
                     b.Property<decimal>("Fee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("FlatFeeDeals", "deal");
+                    b.ToTable("FlatFeeTerms", "deal");
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VenueHireDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VenueHireTermsEntity", b =>
                 {
-                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealEntity");
+                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity");
 
                     b.Property<decimal>("HireFee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("VenueHireDeals", "deal");
+                    b.ToTable("VenueHireTerms", "deal");
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VersusDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VersusTermsEntity", b =>
                 {
-                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealEntity");
+                    b.HasBaseType("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity");
 
                     b.Property<decimal>("ArtistDoorPercent")
                         .HasColumnType("decimal(18,2)");
@@ -153,41 +153,41 @@ namespace Concertable.B2B.Deal.Infrastructure.Data.Migrations
                     b.Property<decimal>("Guarantee")
                         .HasColumnType("decimal(18,2)");
 
-                    b.ToTable("VersusDeals", "deal");
+                    b.ToTable("VersusTerms", "deal");
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DoorSplitDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.DoorSplitTermsEntity", b =>
                 {
-                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealEntity", null)
+                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity", null)
                         .WithOne()
-                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.DoorSplitDealEntity", "Id")
+                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.DoorSplitTermsEntity", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.FlatFeeDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.FlatFeeTermsEntity", b =>
                 {
-                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealEntity", null)
+                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity", null)
                         .WithOne()
-                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.FlatFeeDealEntity", "Id")
+                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.FlatFeeTermsEntity", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VenueHireDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VenueHireTermsEntity", b =>
                 {
-                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealEntity", null)
+                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity", null)
                         .WithOne()
-                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.VenueHireDealEntity", "Id")
+                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.VenueHireTermsEntity", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VersusDealEntity", b =>
+            modelBuilder.Entity("Concertable.B2B.Deal.Domain.Entities.VersusTermsEntity", b =>
                 {
-                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealEntity", null)
+                    b.HasOne("Concertable.B2B.Deal.Domain.Entities.DealTermsEntity", null)
                         .WithOne()
-                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.VersusDealEntity", "Id")
+                        .HasForeignKey("Concertable.B2B.Deal.Domain.Entities.VersusTermsEntity", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

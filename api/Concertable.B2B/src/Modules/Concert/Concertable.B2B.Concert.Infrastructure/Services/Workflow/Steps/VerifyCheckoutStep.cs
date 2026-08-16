@@ -8,18 +8,18 @@ namespace Concertable.B2B.Concert.Infrastructure.Services.Workflow.Steps;
 internal sealed class VerifyCheckoutStep : IAcceptCheckoutStep
 {
     private readonly IApplicationRepository applicationRepository;
-    private readonly IDealAccessor dealAccessor;
+    private readonly IDealTermsAccessor dealTermsAccessor;
     private readonly IManagerPaymentOperationsClient managerPaymentClient;
     private readonly IPaymentAmountMapper paymentAmountMapper;
 
     public VerifyCheckoutStep(
         IApplicationRepository applicationRepository,
-        IDealAccessor dealAccessor,
+        IDealTermsAccessor dealTermsAccessor,
         IManagerPaymentOperationsClient managerPaymentClient,
         IPaymentAmountMapper paymentAmountMapper)
     {
         this.applicationRepository = applicationRepository;
-        this.dealAccessor = dealAccessor;
+        this.dealTermsAccessor = dealTermsAccessor;
         this.managerPaymentClient = managerPaymentClient;
         this.paymentAmountMapper = paymentAmountMapper;
     }
@@ -42,7 +42,7 @@ internal sealed class VerifyCheckoutStep : IAcceptCheckoutStep
         };
 
         var session = await managerPaymentClient.CreateVerifySessionAsync(venueTenantId, metadata);
-        var amount = paymentAmountMapper.ToPaymentAmount(dealAccessor.Deal);
+        var amount = paymentAmountMapper.ToPaymentAmount(dealTermsAccessor.Terms);
         return new Checkout(amount, artist, session, CheckoutLabels.Settlement);
     }
 }

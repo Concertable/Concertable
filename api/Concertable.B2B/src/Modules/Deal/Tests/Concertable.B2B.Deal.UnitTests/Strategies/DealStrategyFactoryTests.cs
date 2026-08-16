@@ -10,10 +10,10 @@ namespace Concertable.B2B.Deal.UnitTests.Strategies;
 public sealed class DealStrategyFactoryTests
 {
     [Theory]
-    [InlineData(DealType.FlatFee, typeof(FlatFeeDealMapper), typeof(FlatFeeDealUpdater))]
-    [InlineData(DealType.DoorSplit, typeof(DoorSplitDealMapper), typeof(DoorSplitDealUpdater))]
-    [InlineData(DealType.Versus, typeof(VersusDealMapper), typeof(VersusDealUpdater))]
-    [InlineData(DealType.VenueHire, typeof(VenueHireDealMapper), typeof(VenueHireDealUpdater))]
+    [InlineData(DealType.FlatFee, typeof(FlatFeeTermsMapper), typeof(FlatFeeTermsUpdater))]
+    [InlineData(DealType.DoorSplit, typeof(DoorSplitTermsMapper), typeof(DoorSplitTermsUpdater))]
+    [InlineData(DealType.Versus, typeof(VersusTermsMapper), typeof(VersusTermsUpdater))]
+    [InlineData(DealType.VenueHire, typeof(VenueHireTermsMapper), typeof(VenueHireTermsUpdater))]
     public void Create_DealType_ResolvesExpectedStrategiesFromRequestScope(
         DealType dealType,
         Type expectedMapperType,
@@ -28,10 +28,10 @@ public sealed class DealStrategyFactoryTests
         using var scope = provider.CreateScope();
 
         var mapper = scope.ServiceProvider
-            .GetRequiredService<IDealStrategyFactory<IDealMapper>>()
+            .GetRequiredService<IDealStrategyFactory<IDealTermsMapper>>()
             .Create(dealType);
         var updater = scope.ServiceProvider
-            .GetRequiredService<IDealStrategyFactory<IDealUpdater>>()
+            .GetRequiredService<IDealStrategyFactory<IDealTermsUpdater>>()
             .Create(dealType);
 
         Assert.IsType(expectedMapperType, mapper);
@@ -41,8 +41,8 @@ public sealed class DealStrategyFactoryTests
     [Theory]
     [InlineData(typeof(IKeyedServiceProvider))]
     [InlineData(typeof(IDealStrategyFactory<>))]
-    [InlineData(typeof(IDealMapper))]
-    [InlineData(typeof(IDealUpdater))]
+    [InlineData(typeof(IDealTermsMapper))]
+    [InlineData(typeof(IDealTermsUpdater))]
     public void AddDealStrategies_ScopeCapturingServices_RegistersScoped(Type serviceType)
     {
         var services = new ServiceCollection();
@@ -68,10 +68,10 @@ public sealed class DealStrategyFactoryTests
         using var secondScope = provider.CreateScope();
 
         var first = firstScope.ServiceProvider
-            .GetRequiredService<IDealStrategyFactory<IDealMapper>>()
+            .GetRequiredService<IDealStrategyFactory<IDealTermsMapper>>()
             .Create(DealType.FlatFee);
         var second = secondScope.ServiceProvider
-            .GetRequiredService<IDealStrategyFactory<IDealMapper>>()
+            .GetRequiredService<IDealStrategyFactory<IDealTermsMapper>>()
             .Create(DealType.FlatFee);
 
         Assert.Same(first, second);

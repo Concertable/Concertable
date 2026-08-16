@@ -8,7 +8,10 @@
 
 ## Bounded context
 
-B2B owns the venue/artist side of Concertable: opportunities, applications, bookings, contracts, concert workflow, settlement, and manager/admin profiles. The concert here is a **workflow entity** (`Posted → Applied → Accepted → Verified → Finished → Settled`) with contract terms and settlement obligations. B2B does **not** own ticket buyers, customer reviews, or browse/search — those belong to Customer and Search respectively.
+B2B owns the venue/artist side of Concertable: opportunity terms, applications, bookings, contracts,
+concert workflow, settlement, and manager/admin profiles. `DealTerms` is the editable offer; it is not
+the concrete lifecycle-owning `Deal` introduced by the ownership cut-over. B2B does **not** own ticket
+buyers, customer reviews, or browse/search - those belong to Customer and Search respectively.
 
 ---
 
@@ -32,8 +35,8 @@ All modules live under `Modules/`. Each follows the `Concertable.B2B.<Module>.*`
 | Module | Canonical entities | Projects |
 |---|---|---|
 | **Artist** | `ArtistEntity` | Api, Application, Contracts, Domain, Infrastructure, IntegrationTests |
-| **Concert** | `ConcertEntity` (workflow: stage, BookingId; deal type derives through Booking → Application), `OpportunityEntity`, `ApplicationEntity`, `BookingEntity`, `SettlementTransactionEntity`, `TicketTransactionEntity` | Api, Application, Contracts, Domain, Infrastructure, IntegrationTests, UnitTests |
-| **Contract** | `DealEntity` (TPH: `FlatFeeDealEntity`, `DoorSplitDealEntity`, `VersusDealEntity`, `VenueHireDealEntity`), `EscrowEntity` | Api, Application, Contracts, Domain, Infrastructure, UnitTests |
+| **Concert** | `ConcertEntity`, `OpportunityEntity`, `ApplicationEntity`, `BookingEntity`, `ContractEntity`, `SettlementTransactionEntity`, `TicketTransactionEntity` | Api, Application, Contracts, Domain, Infrastructure, IntegrationTests, UnitTests |
+| **Deal** | `DealTermsEntity` (`FlatFeeTermsEntity`, `DoorSplitTermsEntity`, `VersusTermsEntity`, `VenueHireTermsEntity`) | Api, Application, Contracts, Domain, Infrastructure, UnitTests |
 | **Conversations** | `MessageEntity` | Api, Application, Contracts, Domain, Infrastructure |
 | **Tenant** | `TenantEntity` (org legal/VAT/Stripe identity; owns venues; settlement payee — the renamed `OrganizationEntity`) | Api, Application, Contracts, Domain, Infrastructure, IntegrationTests, UnitTests |
 | **User** | `UserEntity` (flat) + standalone `AdminProfileEntity` — no TPH, no manager-profile subtypes | Api, Application, Contracts, Domain, Infrastructure, IntegrationTests |

@@ -17,7 +17,7 @@ internal sealed class ConcertDevSeeder : IDevSeeder
 
     private readonly ConcertDbContext context;
     private readonly SeedState seed;
-    private readonly IDealModule deals;
+    private readonly IDealTermsModule deals;
     private readonly ITermsFingerprintCalculator fingerprint;
     private readonly ITenantModule tenants;
     private readonly LegalSettings legal;
@@ -26,7 +26,7 @@ internal sealed class ConcertDevSeeder : IDevSeeder
     public ConcertDevSeeder(
         ConcertDbContext context,
         SeedState seed,
-        IDealModule deals,
+        IDealTermsModule deals,
         ITermsFingerprintCalculator fingerprint,
         ITenantModule tenants,
         IOptions<LegalSettings> legal,

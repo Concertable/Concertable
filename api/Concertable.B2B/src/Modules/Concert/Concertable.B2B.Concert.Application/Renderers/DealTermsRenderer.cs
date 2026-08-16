@@ -5,13 +5,13 @@ namespace Concertable.B2B.Concert.Application.Renderers;
 
 internal sealed class DealTermsRenderer : IDealTermsRenderer
 {
-    private readonly IConcertDealStrategyFactory<IDealTerms> terms;
+    private readonly IConcertDealStrategyFactory<IDealTermsFormatter> formatters;
 
-    public DealTermsRenderer(IConcertDealStrategyFactory<IDealTerms> terms)
+    public DealTermsRenderer(IConcertDealStrategyFactory<IDealTermsFormatter> formatters)
     {
-        this.terms = terms;
+        this.formatters = formatters;
     }
 
-    public string Render(IDeal deal) =>
-        terms.Create(deal.DealType).Render(deal);
+    public string Render(IDealTerms terms) =>
+        formatters.Create(terms.DealType).Render(terms);
 }

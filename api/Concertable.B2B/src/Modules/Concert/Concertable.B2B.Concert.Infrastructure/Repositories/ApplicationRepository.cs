@@ -107,11 +107,11 @@ internal sealed class ApplicationRepository : VenueArtistTenantScopedRepository<
             .ExecuteUpdateAsync(s => s.SetProperty(a => a.State, LifecycleState.Rejected));
     }
 
-    public Task<int?> GetDealIdByIdAsync(int applicationId)
+    public Task<int?> GetDealTermsIdByIdAsync(int applicationId)
     {
         return context.Applications
             .Where(a => a.Id == applicationId)
-            .Select(a => (int?)a.Opportunity.DealId)
+            .Select(a => (int?)a.Opportunity.DealTermsId)
             .FirstOrDefaultAsync();
     }
 

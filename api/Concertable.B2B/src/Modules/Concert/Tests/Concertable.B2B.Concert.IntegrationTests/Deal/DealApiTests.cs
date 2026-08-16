@@ -26,13 +26,13 @@ public sealed class DealApiTests : IAsyncLifetime
         var client = fixture.CreateClient();
         var expected = fixture.SeedState.FreshVenueHireOpportunity;
 
-        var response = await client.GetAsync($"/api/Deal/{expected.DealId}");
+        var response = await client.GetAsync($"/api/Deal/{expected.DealTermsId}");
 
         await response.ShouldBe(HttpStatusCode.OK);
-        var deal = await response.Content.ReadAsync<IDeal>();
+        var deal = await response.Content.ReadAsync<IDealTerms>();
         Assert.NotNull(deal);
-        Assert.Equal(expected.DealId, deal.Id);
-        Assert.Equal(DealType.VenueHire, deal.DealType);
+        Assert.Equal(expected.DealTermsId, deal.Id);
+        Assert.Equal(DealType.VenueHire, terms.DealType);
     }
 
     [Fact]

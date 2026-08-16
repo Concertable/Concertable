@@ -7,7 +7,7 @@ namespace Concertable.B2B.Concert.Infrastructure.Services;
 
 internal sealed class ContractIssuer : IContractIssuer
 {
-    private readonly IDealAccessor dealAccessor;
+    private readonly IDealTermsAccessor dealTermsAccessor;
     private readonly IApplicationRepository applicationRepository;
     private readonly IContractRepository contractRepository;
     private readonly IDealTermsRenderer termsRenderer;
@@ -17,7 +17,7 @@ internal sealed class ContractIssuer : IContractIssuer
     private readonly TimeProvider timeProvider;
 
     public ContractIssuer(
-        IDealAccessor dealAccessor,
+        IDealTermsAccessor dealTermsAccessor,
         IApplicationRepository applicationRepository,
         IContractRepository contractRepository,
         IDealTermsRenderer termsRenderer,
@@ -26,7 +26,7 @@ internal sealed class ContractIssuer : IContractIssuer
         IOptions<LegalSettings> legal,
         TimeProvider timeProvider)
     {
-        this.dealAccessor = dealAccessor;
+        this.dealTermsAccessor = dealTermsAccessor;
         this.applicationRepository = applicationRepository;
         this.contractRepository = contractRepository;
         this.termsRenderer = termsRenderer;
@@ -41,7 +41,7 @@ internal sealed class ContractIssuer : IContractIssuer
         BookingEntity booking,
         ESignatureRequest venueESignature)
     {
-        var deal = dealAccessor.Deal;
+        var deal = dealTermsAccessor.Terms;
         var (artist, venue) = await applicationRepository.GetArtistAndVenueByIdAsync(application.Id)
             .OrNotFound(DisplayNames.Application);
 

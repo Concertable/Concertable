@@ -10,6 +10,10 @@ Tokens are identity-only (`sub` + `email`); authority is the active tenant (`X-T
 
 VAT/invoice direction branches on contract type **and** the supplier's VAT-registration status. VenueHire reverses supply direction — the artist is the buyer there — so a blanket "add 20% to the artist payout" is wrong. Detail → `LEGAL_REQUIREMENTS.md`.
 
-## Deal ≠ Contract
+## DealTerms != Deal != Contract
 
-Deal = the editable economic offer (Deal module, keyed by `DealType`); `ContractEntity` = the frozen snapshot minted at Accept (Concert module). Keep `DealType` variation in the keyed resolver / workflow capability, never a branch in agnostic code (→ [`api/agents/CODE_PATTERNS.md`](../agents/CODE_PATTERNS.md)).
+`DealTerms` is the editable opportunity offer in the Deal module, keyed by `DealType`. `Deal` is the
+concrete artist-venue agreement-in-progress that will own the commercial lifecycle after the ownership
+cut-over; never use that name for terms. `ContractEntity` is the frozen snapshot minted at Accept.
+Keep `DealType` variation in the keyed resolver / workflow capability, never a branch in agnostic code
+(see [`api/agents/CODE_PATTERNS.md`](../agents/CODE_PATTERNS.md)).

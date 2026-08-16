@@ -17,7 +17,7 @@ public sealed class CancelExecutorTests
         this.executor = new CancelExecutor(
             Mock.Of<ILifecycleTransitioner>(),
             Mock.Of<IConcertWorkflowFactory>(),
-            Mock.Of<IDealResolver>(),
+            Mock.Of<IDealTermsResolver>(),
             this.concertRepository.Object,
             behavior,
             behavior);

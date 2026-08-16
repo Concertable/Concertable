@@ -13,10 +13,10 @@ namespace Concertable.B2B.Concert.UnitTests.Strategies;
 public sealed class ConcertDealStrategyFactoryTests
 {
     [Theory]
-    [InlineData(DealType.FlatFee, typeof(FlatFeeDealTerms))]
-    [InlineData(DealType.DoorSplit, typeof(DoorSplitDealTerms))]
-    [InlineData(DealType.Versus, typeof(VersusDealTerms))]
-    [InlineData(DealType.VenueHire, typeof(VenueHireDealTerms))]
+    [InlineData(DealType.FlatFee, typeof(FlatFeeTermsFormatter))]
+    [InlineData(DealType.DoorSplit, typeof(DoorSplitTermsFormatter))]
+    [InlineData(DealType.Versus, typeof(VersusTermsFormatter))]
+    [InlineData(DealType.VenueHire, typeof(VenueHireTermsFormatter))]
     public void Create_DealType_ResolvesExpectedStrategyFromRequestScope(
         DealType dealType,
         Type expectedType)
@@ -29,7 +29,7 @@ public sealed class ConcertDealStrategyFactoryTests
         });
         using var scope = provider.CreateScope();
         var factory = scope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>();
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>();
 
         var strategy = factory.Create(dealType);
 
@@ -121,16 +121,16 @@ public sealed class ConcertDealStrategyFactoryTests
         using var secondScope = provider.CreateScope();
 
         var first = firstScope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>();
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>();
         var sameScope = firstScope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>();
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>();
         var second = secondScope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>();
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>();
 
         Assert.Same(first, sameScope);
         Assert.NotSame(first, second);
         Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>());
+            provider.GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>());
     }
 
     [Fact]
@@ -146,10 +146,10 @@ public sealed class ConcertDealStrategyFactoryTests
         using var secondScope = provider.CreateScope();
 
         var first = firstScope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>()
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>()
             .Create(DealType.FlatFee);
         var second = secondScope.ServiceProvider
-            .GetRequiredService<IConcertDealStrategyFactory<IDealTerms>>()
+            .GetRequiredService<IConcertDealStrategyFactory<IDealTermsFormatter>>()
             .Create(DealType.FlatFee);
 
         Assert.Same(first, second);

@@ -586,7 +586,7 @@ namespace Concertable.B2B.Concert.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DealId")
+                    b.Property<int>("DealTermsId")
                         .HasColumnType("int");
 
                     b.PrimitiveCollection<string>("Genres")
@@ -614,7 +614,7 @@ namespace Concertable.B2B.Concert.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DealId")
+                    b.HasIndex("DealTermsId")
                         .IsUnique();
 
                     b.HasIndex("VenueId");

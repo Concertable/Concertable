@@ -8,7 +8,7 @@ internal sealed class DealConfigurationProvider : IEntityTypeConfigurationProvid
 {
     public void Configure(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new DealEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new DealTermsEntityConfiguration());
         modelBuilder.ApplyConfiguration(new FlatFeeDealEntityConfiguration());
         modelBuilder.ApplyConfiguration(new DoorSplitDealEntityConfiguration());
         modelBuilder.ApplyConfiguration(new VersusDealEntityConfiguration());

@@ -1,17 +1,15 @@
-# Deal & Concert-Workflow Architecture
+# Deal Terms and Concert Workflow Architecture
 
-How the **deal** data and the **concert lifecycle workflow** fit together. Read this before touching
-`api/.../Modules/Deal/`, `api/.../Modules/Concert/Concertable.B2B.Concert.Application/Workflow/`, or
-`api/.../Modules/Concert/Concertable.B2B.Concert.Infrastructure/Services/Workflow/`.
+How the editable `DealTerms` data and the current Concert-hosted lifecycle fit together. Read this
+before touching `api/.../Modules/Deal/` or the Concert workflow implementation.
 
-Two names that are easy to confuse, and that a past refactor deliberately separated:
+Three domain names are deliberately distinct:
 
-- **Deal** — the *economic arrangement* (flat fee / door split / versus / venue hire), with its
-  numbers (`Fee`, `HireFee`, `ArtistDoorPercent`, `Guarantee`) and its `PaymentMethod`. It is the
-  editable current offer. Lives in the **Deal module** (`Modules/Deal/`), keyed by the `DealType` enum.
-- **Contract** — the *signed binding artifact* (parties + both e-signatures + rendered legal terms +
-  PDF), a frozen by-value snapshot formed at Accept. It is the `ContractEntity` in the **Concert
-  module**, and is a different thing from the Deal it was rendered from.
+- **DealTerms** - the editable opportunity offer (flat fee / door split / versus / venue hire), with
+  its economic values and `PaymentMethod`. It lives in the Deal module and is keyed by `DealType`.
+- **Deal** - the concrete artist-venue agreement-in-progress reserved for the lifecycle-owning
+  aggregate introduced by the ownership cut-over. It is not a synonym for DealTerms.
+- **Contract** - the signed binding artifact, frozen by value at Accept.
 
 ---
 
@@ -19,12 +17,12 @@ Two names that are easy to confuse, and that a past refactor deliberately separa
 
 Two collaborating sub-systems, connected by a `DealType` enum value:
 
-1. **The Deal module** owns the *data* — what kind of deal, with what numbers, on which
-   `PaymentMethod`. Shape per deal type is fixed at compile time via a TPH (table-per-hierarchy)
-   entity model in `Concertable.B2B.Deal.Domain`. It knows nothing about the lifecycle.
-2. **The Concert workflow** owns the *behaviour* — how an application progresses from `Applied → … →
-   Complete` for that deal type, who pays whom, when Stripe is called, and what each lifecycle step
-   does. It lives entirely in the Concert module and reads deals through the `IDealModule` facade.
+1. **The Deal module** owns the editable terms data - which `DealType`, with what numbers, and on
+   which `PaymentMethod`. The typed terms shape is fixed at compile time and knows nothing about the
+   lifecycle.
+2. **The Concert workflow currently owns the behaviour** - how an application progresses from
+   `Applied` to `Complete`, who pays whom, and what each lifecycle step does. It reads DealTerms
+   through `IDealTermsModule`; the later ownership cut-over moves that lifecycle to concrete Deal.
 
 ```
                 Apply        Checkout       Accept (money leg)     Finish            Settle
@@ -41,40 +39,40 @@ Two collaborating sub-systems, connected by a `DealType` enum value:
 ```
 api/.../Modules/Deal/
 ├─ Concertable.B2B.Deal.Domain/Entities/
-│  ├─ DealEntity.cs                  (abstract TPH root: Id, PaymentMethod, abstract DealType)
-│  ├─ FlatFeeDealEntity.cs           { Fee }
-│  ├─ DoorSplitDealEntity.cs         { ArtistDoorPercent }
-│  ├─ VenueHireDealEntity.cs         { HireFee }
-│  └─ VersusDealEntity.cs            { Guarantee, ArtistDoorPercent }
+│  ├─ DealTermsEntity.cs                  (abstract TPH root: Id, PaymentMethod, abstract DealType)
+│  ├─ FlatFeeTermsEntity.cs           { Fee }
+│  ├─ DoorSplitTermsEntity.cs         { ArtistDoorPercent }
+│  ├─ VenueHireTermsEntity.cs         { HireFee }
+│  └─ VersusTermsEntity.cs            { Guarantee, ArtistDoorPercent }
 ├─ Concertable.B2B.Deal.Contracts/
 │  ├─ DealType.cs                    enum { FlatFee, DoorSplit, Versus, VenueHire }
 │  ├─ PaymentMethod.cs               enum { Cash, Transfer }
-│  ├─ IDeal.cs                       interface (+ [JsonDerivedType] per subtype for the SPA wire)
-│  ├─ FlatFeeDeal.cs / DoorSplitDeal.cs / …   records implementing IDeal
-│  └─ IDealModule.cs                 cross-module facade (Get / Create / Update / Delete)
+│  ├─ IDealTerms.cs                       interface (+ [JsonDerivedType] per subtype for the SPA wire)
+│  ├─ FlatFeeTerms.cs / DoorSplitTerms.cs / …   records implementing IDealTerms
+│  └─ IDealTermsModule.cs                 cross-module facade (Get / Create / Update / Delete)
 ├─ Concertable.B2B.Deal.Application/
-│  ├─ Mappers/                       typed leaves + named DealMapper facade
+│  ├─ Mappers/                       typed leaves + named DealTermsMapper facade
 │  └─ Strategies/IDealStrategyFactory.cs
 └─ Concertable.B2B.Deal.Infrastructure/
    ├─ Services/Strategies/           module-local keyed factory + validated builder
-   ├─ Services/Updaters/             typed leaves + named DealUpdater facade
+   ├─ Services/Updaters/             typed leaves + named DealTermsUpdater facade
    └─ EF configs, DbContext, repositories, and DI
 ```
 
 Key invariants:
 
-- **`DealEntity`** is a TPH base with `Id`, `PaymentMethod`, abstract `DealType`. Each subtype adds
+- **`DealTermsEntity`** is a TPH base with `Id`, `PaymentMethod`, abstract `DealType`. Each subtype adds
   its own typed columns (`Fee`, `HireFee`, `ArtistDoorPercent`, `Guarantee`). Validation lives on the
   entity (`ValidateFee`, `ValidateArtistDoorPercent`).
 - **`PaymentMethod`** (`Cash | Transfer`) is metadata for the off-platform settlement channel — it
   does **not** drive workflow timing. What decides "when money moves" is which lifecycle stage a step
   is wired to, not this field.
-- **Deal strategy registration is vertical and module-local.** `DealMapper` and `DealUpdater` delegate
+- **DealTerms strategy registration is vertical and module-local.** `DealTermsMapper` and `DealTermsUpdater` delegate
   through the scoped `IDealStrategyFactory<T>`; one validated `strategies.For(DealType.X)` block owns
   both keyed families and requires exact coverage. Payment remains deal-type-agnostic.
-- **`Concert.Opportunity.DealId`** is a satellite FK into the Deal module's DB (no nav back, no SQL FK
-  across the context boundary). The Concert module reads deals through `IDealAccessor` /
-  `IDealResolver` (§2.6), which delegate to `IDealModule`.
+- **`Concert.Opportunity.DealTermsId`** is a satellite FK into the Deal module's DB (no nav back, no SQL FK
+  across the context boundary). The Concert module reads deal terms through `IDealTermsAccessor` /
+  `IDealTermsResolver` (§2.6), which delegate to `IDealTermsModule`.
 
 The `DealType` enum is load-bearing and assumed closed — every keyed-DI lookup, capability match, and
 JSON polymorphic discriminator assumes a finite set known at compile time.
@@ -87,7 +85,7 @@ The lifecycle lives on **`ApplicationEntity.State`** — one state machine per d
 enters via `controller → IApplicationService → *Executor → ILifecycleTransitioner → the deal-type's
 IConcertWorkflow step`; payment events enter through their `*Processor` and bind directly to the
 relevant executor or payment-outcome Application contract. Deal *terms* are read through a
-request-scoped `IDealAccessor`; money movement is delegated to Payment via `IEscrowClient` /
+request-scoped `IDealTermsAccessor`; money movement is delegated to Payment via `IEscrowClient` /
 `IManagerPaymentClient`.
 
 ### 2.1 Lifecycle state + trigger
@@ -228,20 +226,20 @@ Note the asymmetry: FlatFee/DoorSplit/Versus check out at **accept** time; Venue
 
 ### 2.6 How the Concert module reads deal terms
 
-A single `internal sealed class DealAccessor : IDealAccessor, IDealResolver`
-(`Infrastructure/Services/DealAccessor.cs`), registered request-scoped and aliased so both interfaces
+A single `internal sealed class DealTermsAccessor : IDealTermsAccessor, IDealTermsResolver`
+(`Infrastructure/Services/DealTermsAccessor.cs`), registered request-scoped and aliased so both interfaces
 resolve to the *same* instance:
 
-- **`IDealResolver`** (write side, used by executors): `ResolveByOpportunityIdAsync` /
-  `…ApplicationIdAsync` / `…ConcertIdAsync`. Each maps entity id → `DealId` (via a repository's
-  `GetDealIdByIdAsync`) → `IDealModule.GetByIdAsync(dealId)`, **memoizing** the result — first resolve
+- **`IDealTermsResolver`** (write side, used by executors): `ResolveByOpportunityIdAsync` /
+  `…ApplicationIdAsync` / `…ConcertIdAsync`. Each maps entity id → `DealTermsId` (via a repository's
+  `GetDealTermsIdByIdAsync`) → `IDealTermsModule.GetByIdAsync(dealTermsId)`, **memoizing** the result — first resolve
   wins.
-- **`IDealAccessor`** (read side, used by steps): a single `IDeal Deal` property that returns the
-  memoized deal, or throws `InvalidOperationException` ("No deal resolved this scope …") if the
+- **`IDealTermsAccessor`** (read side, used by steps): a single `IDealTerms Terms` property that returns the
+  memoized terms, or throws `InvalidOperationException` ("No deal terms resolved this scope …") if the
   orchestrator hasn't resolved one yet. Steps cast to the concrete type (e.g.
-  `(FlatFeeDeal)dealAccessor.Deal`).
+  `(FlatFeeTerms)dealTermsAccessor.Terms`).
 
-So the contract is: the executor resolves the deal, then the step reads it. (This request-scoped
+So the contract is: the executor resolves the terms, then the step reads them. (This request-scoped
 memoizer replaced an earlier `IContractLoader` design — that type no longer exists.)
 
 ### 2.7 Money movement
@@ -294,7 +292,7 @@ so consumers never branch on deal type or invert one role to infer another.
 
 FK chain: `OpportunityEntity (1)→(N) ApplicationEntity (1)→(0..1) BookingEntity (1)→(0..1)
 ConcertEntity`, and `BookingEntity (1)→(0..1) ContractEntity`. `OpportunityEntity` is `ITenantScoped`
-(the venue) and holds the satellite `DealId` FK into the Deal module.
+(the venue) and holds the satellite `DealTermsId` FK into the Deal module.
 
 The TPH split on Application/Booking exists so prepaid-at-apply (VenueHire) and deferred-pay-at-finish
 (DoorSplit/Versus) can carry a `PaymentMethodId` without nullable columns on the standard variants.
@@ -306,7 +304,7 @@ The TPH split on Application/Booking exists so prepaid-at-apply (VenueHire) and 
 `CreatedAtUtc`. It is created by **`ContractIssuer.IssueAsync`** (`Infrastructure/Services/`), invoked
 from `AcceptExecutor` during the Accept transition: it renders terms via `IDealTermsRenderer`, copies
 the artist's e-signature (captured at apply) and the venue's (from the accept request), and persists
-via `IContractRepository`. The Deal is the *editable* current offer; the
+via `IContractRepository`. DealTerms is the *editable* current offer; the
 Contract is the *frozen, signed copy* — "formed at Accept" is a convention of the workflow, not a
 model-enforced invariant. `ESignature` is a `sealed record` (`UserId, AtUtc, Ip, UserAgent?,
 SignatoryName, DrawnSignatureImage?`), attributed server-side — the `Ip` is required (fail-closed at
@@ -320,10 +318,10 @@ The single spot that ties a deal type to its strategies, lifecycle, steps, and w
 `strategies.For(DealType.X)` block. The executors, dispatchers, transitioner, factory, and registries are all deal-type-agnostic
 (keyed DI + capability matching) and need no changes.
 
-1. **`Deal.Contracts`** — add the case to `DealType.cs`; add an `XDeal : IDeal` record + a
-   `[JsonDerivedType]` line on `IDeal.cs`.
-2. **`Deal.Domain` / `.Application` / `.Infrastructure`** — add `XDealEntity : DealEntity` (typed
-   columns + `Create`/`Update`/validator), an `XDealMapper`, an `XDealUpdater`, and an EF config. Add
+1. **`Deal.Contracts`** — add the case to `DealType.cs`; add an `XTerms : IDealTerms` record + a
+   `[JsonDerivedType]` line on `IDealTerms.cs`.
+2. **`Deal.Domain` / `.Application` / `.Infrastructure`** — add `XTermsEntity : DealTermsEntity` (typed
+   columns + `Create`/`Update`/validator), an `XTermsMapper`, an `XTermsUpdater`, and an EF config. Add
    both strategy leaves to the new deal's vertical `strategies.For(DealType.X)` block; the builder's
    exact-coverage gate fails until both families are present.
 3. **Migrations** — re-scaffold: run `./initial-migrations.ps1` from `api/` (per `api/CLAUDE.md`; never
@@ -359,7 +357,7 @@ blocker is the *data* side (a closed `DealType`, typed TPH columns, typed step r
 | Concern | Where | Why it blocks dynamic deals |
 |---|---|---|
 | `DealType` is a closed enum | `Deal.Contracts/DealType.cs` | Every keyed-DI lookup, capability match, and JSON discriminator assumes a finite compile-time set. User-defined deals need an open identifier + runtime registration. |
-| TPH schema per subtype | `Deal.Domain/Entities/*DealEntity.cs` + EF configs | Each deal type gets its own columns; a user-defined deal has unknown shape at migration time (needs a JSON blob or rule list). |
+| TPH schema per subtype | `Deal.Domain/Entities/*DealTermsEntity.cs` + EF configs | Each deal type gets its own columns; a user-defined deal has unknown shape at migration time (needs a JSON blob or rule list). |
 | Strategy leaves read typed properties | `Concert.Infrastructure/Services/Settlement/*SettlementAmount.cs` | Revenue-share leaves read `ArtistDoorPercent` and optional `Guarantee`; a custom deal has no typed property — you'd need a rule interpreter or a finite set of rule kinds. |
 | Stripe primitives are rigid | Payment | Connect exposes a small finite set of operations; custom deals still map onto that set. |
 | `DealPayeeResolver` selects a closed directional strategy | `Concert.Application/Resolvers/` | Who keeps ticket revenue and who receives settlement are cohesive values keyed by `DealType`; a custom deal must declare both. |
@@ -384,9 +382,9 @@ blocker is the *data* side (a closed `DealType`, typed TPH columns, typed step r
 
 ## 6. Frequently confused things & open issues
 
-- **`Deal` ≠ `Contract`.** The Deal is the editable economic offer (Deal module); the `ContractEntity`
-  is the frozen signed artifact formed at Accept (Concert module). Different lifetimes, different
-  models.
+- **`DealTerms` != `Deal` != `Contract`.** DealTerms is the editable opportunity offer; Deal is
+  reserved for the concrete lifecycle aggregate; `ContractEntity` is the frozen signed artifact
+  formed at Accept.
 - **`PaymentMethod` ≠ `paymentMethodId`.** `PaymentMethod` is the Deal-domain enum (`Cash | Transfer`)
   used for accounting; `paymentMethodId` is a Stripe PM id (`pm_…`) flowed through the paid steps and
   the `Prepaid`/`Deferred` TPH variants. Different things.
@@ -402,7 +400,7 @@ blocker is the *data* side (a closed `DealType`, typed TPH columns, typed step r
 `ISettlementAmountResolver` is the single settlement-gross contract used by payout and invoicing.
 Its generic strategy factory selects FlatFee, DoorSplit, Versus, or VenueHire leaves from the vertical
 registration. DoorSplit and Versus share only revenue loading; each leaf owns its complete formula.
-Deal entities carry economic inputs and validation but do not duplicate the runtime calculation.
+DealTerms entities carry economic inputs and validation but do not duplicate the runtime calculation.
 
 ### 6.2 Deal strategy selection is module-local
 

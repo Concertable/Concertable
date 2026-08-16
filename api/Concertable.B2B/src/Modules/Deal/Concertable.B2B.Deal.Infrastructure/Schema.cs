@@ -6,10 +6,10 @@ internal static class Schema
 
     public static class Tables
     {
-        public const string Deals = "Deals";
-        public const string FlatFeeDeals = "FlatFeeDeals";
-        public const string DoorSplitDeals = "DoorSplitDeals";
-        public const string VersusDeals = "VersusDeals";
-        public const string VenueHireDeals = "VenueHireDeals";
+        public const string DealTerms = "DealTerms";
+        public const string FlatFeeTerms = "FlatFeeTerms";
+        public const string DoorSplitTerms = "DoorSplitTerms";
+        public const string VersusTerms = "VersusTerms";
+        public const string VenueHireTerms = "VenueHireTerms";
     }
 }

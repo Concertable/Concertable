@@ -8,33 +8,33 @@ namespace Concertable.B2B.Concert.Application.Mappers;
 
 internal sealed class OpportunityMapper : IOpportunityMapper
 {
-    private readonly IDealModule dealModule;
+    private readonly IDealTermsModule dealTermsModule;
 
-    public OpportunityMapper(IDealModule dealModule)
+    public OpportunityMapper(IDealTermsModule dealTermsModule)
     {
-        this.dealModule = dealModule;
+        this.dealTermsModule = dealTermsModule;
     }
 
     public async Task<OpportunityDto> ToDtoAsync(OpportunityEntity opportunity)
     {
-        var dealOption = await dealModule.GetByIdAsync(opportunity.DealId);
-        if (!dealOption.TryGetValue(out var deal))
-            throw new InvalidOperationException($"Opportunity {opportunity.Id} references missing deal {opportunity.DealId}.");
+        var termsOption = await dealTermsModule.GetByIdAsync(opportunity.DealTermsId);
+        if (!termsOption.TryGetValue(out var terms))
+            throw new InvalidOperationException($"Opportunity {opportunity.Id} references missing deal terms {opportunity.DealTermsId}.");
 
-        return opportunity.ToDto(deal);
+        return opportunity.ToDto(terms);
     }
 
     public async Task<IReadOnlyList<OpportunityDto>> ToDtosAsync(IEnumerable<OpportunityEntity> opportunities)
     {
         var opportunityList = opportunities.ToList();
-        var dealMap = (await dealModule.GetByIdsAsync(opportunityList.Select(o => o.DealId).Distinct()))
+        var termsMap = (await dealTermsModule.GetByIdsAsync(opportunityList.Select(o => o.DealTermsId).Distinct()))
             .ToDictionary(c => c.Id);
 
         return opportunityList.Select(o =>
         {
-            if (!dealMap.TryGetValue(o.DealId, out var deal))
-                throw new InvalidOperationException($"Opportunity {o.Id} references missing deal {o.DealId}.");
-            return o.ToDto(deal);
+            if (!termsMap.TryGetValue(o.DealTermsId, out var terms))
+                throw new InvalidOperationException($"Opportunity {o.Id} references missing deal terms {o.DealTermsId}.");
+            return o.ToDto(terms);
         }).ToList();
     }
 
@@ -47,12 +47,12 @@ internal sealed class OpportunityMapper : IOpportunityMapper
 
 internal static class OpportunityMappers
 {
-    public static OpportunityDto ToDto(this OpportunityEntity opportunity, IDeal deal) => new()
+    public static OpportunityDto ToDto(this OpportunityEntity opportunity, IDealTerms terms) => new()
     {
         Id = opportunity.Id,
         VenueId = opportunity.VenueId,
-        DealId = opportunity.DealId,
-        Deal = deal,
+        DealTermsId = opportunity.DealTermsId,
+        Terms = terms,
         StartDate = opportunity.Period.Start,
         EndDate = opportunity.Period.End,
         Genres = opportunity.Genres

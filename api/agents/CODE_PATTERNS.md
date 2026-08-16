@@ -150,7 +150,7 @@ Rules of the shape:
   it or call `GetRequiredKeyedService`.
 - **The factory is scoped.** A selected leaf may depend on scoped repositories or clients. Stateless
   leaves may remain singleton, but any unkeyed facade that captures the factory must also be scoped.
-- **Named facades remain the business API.** `DealMapper`, `DealUpdater`, `DealTermsRenderer`, and
+- **Named facades remain the business API.** `DealTermsMapper`, `DealTermsUpdater`, `DealTermsRenderer`, and
   `SettlementAmountResolver` implement their operation-specific interfaces and delegate selection to
   the module factory. `IConcertWorkflowFactory` remains a named factory because its caller genuinely
   needs the selected workflow instance.

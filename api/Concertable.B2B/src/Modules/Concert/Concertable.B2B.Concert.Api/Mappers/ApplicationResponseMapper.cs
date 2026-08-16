@@ -1,4 +1,4 @@
-﻿using Concertable.B2B.Concert.Api.Responses;
+using Concertable.B2B.Concert.Api.Responses;
 using Concertable.B2B.Concert.Application.DTOs;
 using Concertable.B2B.Concert.Application.Interfaces;
 using Concertable.B2B.Concert.Application.Workflow;
@@ -17,7 +17,7 @@ internal sealed class ApplicationResponseMapper : IApplicationResponseMapper
 
     public ApplicationResponse ToResponse(ApplicationDto dto)
     {
-        var ct = dto.Opportunity.Deal.DealType;
+        var ct = dto.Opportunity.Terms.DealType;
         var isPending = dto.State == LifecycleState.Applied;
         var isCancellable = dto.State is LifecycleState.Accepted or LifecycleState.PaymentFailed;
 
@@ -38,7 +38,7 @@ internal sealed class ApplicationResponseMapper : IApplicationResponseMapper
                 dto.Opportunity.Id,
                 dto.Opportunity.StartDate,
                 dto.Opportunity.EndDate,
-                dto.Opportunity.Deal),
+                dto.Opportunity.Terms),
             dto.Status,
             actions);
     }

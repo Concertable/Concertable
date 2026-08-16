@@ -12,7 +12,7 @@ internal sealed class AcceptExecutor : IAcceptExecutor
 {
     private readonly ILifecycleTransitioner transitioner;
     private readonly IConcertWorkflowFactory workflows;
-    private readonly IDealResolver dealResolver;
+    private readonly IDealTermsResolver termsResolver;
     private readonly IBookingRepository bookingRepository;
     private readonly IContractIssuer contractIssuer;
     private readonly ITermsFingerprintCalculator termsFingerprint;
@@ -24,7 +24,7 @@ internal sealed class AcceptExecutor : IAcceptExecutor
     public AcceptExecutor(
         ILifecycleTransitioner transitioner,
         IConcertWorkflowFactory workflows,
-        IDealResolver dealResolver,
+        IDealTermsResolver termsResolver,
         IBookingRepository bookingRepository,
         IContractIssuer contractIssuer,
         ITermsFingerprintCalculator termsFingerprint,
@@ -35,7 +35,7 @@ internal sealed class AcceptExecutor : IAcceptExecutor
     {
         this.transitioner = transitioner;
         this.workflows = workflows;
-        this.dealResolver = dealResolver;
+        this.termsResolver = termsResolver;
         this.bookingRepository = bookingRepository;
         this.contractIssuer = contractIssuer;
         this.termsFingerprint = termsFingerprint;
@@ -66,9 +66,9 @@ internal sealed class AcceptExecutor : IAcceptExecutor
             error => (AcceptApplicationError)new AcceptApplicationError.TransitionFailure(error),
             async app =>
         {
-            var deal = await dealResolver.ResolveByApplicationIdAsync(app.Id);
-            var terms = VerifyTermsUnchanged(app, deal);
-            if (terms.TryGetError(out var termsError))
+            var dealTerms = await termsResolver.ResolveByApplicationIdAsync(app.Id);
+            var verification = VerifyTermsUnchanged(app, dealTerms);
+            if (verification.TryGetError(out var termsError))
                 return termsError;
 
             var workflow = workflows.Create(app.DealType);
@@ -102,8 +102,8 @@ internal sealed class AcceptExecutor : IAcceptExecutor
         return result;
     }
 
-    private UnitResult<AcceptApplicationError> VerifyTermsUnchanged(ApplicationEntity app, IDeal deal) =>
-        app.TermsFingerprint == termsFingerprint.Calculate(deal, app.Opportunity.Period)
+    private UnitResult<AcceptApplicationError> VerifyTermsUnchanged(ApplicationEntity app, IDealTerms terms) =>
+        app.TermsFingerprint == termsFingerprint.Calculate(terms, app.Opportunity.Period)
             ? new Success()
             : new AcceptApplicationError.TermsChanged();
 }

@@ -17,13 +17,13 @@ internal static class SeededApplicationSigner
 {
     public static async Task SignAsync(
         SeedState seed,
-        IDealModule deals,
+        IDealTermsModule deals,
         ITermsFingerprintCalculator fingerprint,
         DateTime signedAtUtc,
         CancellationToken ct)
     {
         var periodByOpportunityId = seed.Opportunities.ToDictionary(o => o.Id, o => o.Period);
-        var dealIdByOpportunityId = seed.Opportunities.ToDictionary(o => o.Id, o => o.DealId);
+        var dealIdByOpportunityId = seed.Opportunities.ToDictionary(o => o.Id, o => o.DealTermsId);
         var dealById = (await deals.GetByIdsAsync(dealIdByOpportunityId.Values.Distinct(), ct))
             .ToDictionary(c => c.Id);
         var artistById = seed.Artists.ToDictionary(a => a.Id);

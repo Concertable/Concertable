@@ -1,4 +1,4 @@
-﻿using Concertable.B2B.Concert.Api.Responses;
+using Concertable.B2B.Concert.Api.Responses;
 using Concertable.B2B.Concert.Application.DTOs;
 using Concertable.B2B.Concert.Application.Interfaces;
 using Concertable.B2B.Concert.Application.Workflow;
@@ -17,7 +17,7 @@ internal sealed class OpportunityResponseMapper : IOpportunityResponseMapper
 
     public OpportunityResponse ToResponse(OpportunityDto dto)
     {
-        var ct = dto.Deal.DealType;
+        var ct = dto.Terms.DealType;
 
         var actions = new OpportunityActions(
             Checkout: registry.Has<IAppliesCheckout>(ct)
@@ -27,7 +27,7 @@ internal sealed class OpportunityResponseMapper : IOpportunityResponseMapper
         return new OpportunityResponse(
             dto.Id,
             dto.VenueId,
-            dto.Deal,
+            dto.Terms,
             dto.StartDate,
             dto.EndDate,
             dto.Genres,

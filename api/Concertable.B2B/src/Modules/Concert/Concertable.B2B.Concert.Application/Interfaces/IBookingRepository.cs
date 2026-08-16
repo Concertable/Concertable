@@ -10,5 +10,5 @@ internal interface IBookingRepository : IVenueArtistTenantScopedRepository<Booki
     Task<BookingEntity?> GetForSettlementByConcertIdAsync(int concertId);
     Task<int?> GetIdByConcertIdAsync(int concertId);
     Task<int?> GetApplicationIdByIdAsync(int bookingId, CancellationToken ct = default);
-    Task<int?> GetDealIdByIdAsync(int bookingId);
+    Task<int?> GetDealTermsIdByIdAsync(int bookingId);
 }

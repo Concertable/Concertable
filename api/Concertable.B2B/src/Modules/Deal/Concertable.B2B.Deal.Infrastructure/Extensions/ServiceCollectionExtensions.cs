@@ -31,9 +31,9 @@ public static class ServiceCollectionExtensions
                     sp.GetRequiredService<IDomainEventDispatchInterceptor>())
                 .UseSeedingSupport(sp));
 
-        services.AddScoped<IDealRepository, DealRepository>();
-        services.AddScoped<IDealService, DealService>();
-        services.AddScoped<IDealModule, DealModule>();
+        services.AddScoped<IDealTermsRepository, DealTermsRepository>();
+        services.AddScoped<IDealTermsService, DealTermsService>();
+        services.AddScoped<IDealTermsModule, DealTermsModule>();
 
         services.AddDealStrategies();
 
@@ -45,26 +45,26 @@ public static class ServiceCollectionExtensions
 
     internal static IServiceCollection AddDealStrategies(this IServiceCollection services)
     {
-        services.AddScoped<IDealMapper, DealMapper>();
-        services.AddScoped<IDealUpdater, DealUpdater>();
+        services.AddScoped<IDealTermsMapper, DealTermsMapper>();
+        services.AddScoped<IDealTermsUpdater, DealTermsUpdater>();
 
         return services.AddDealStrategies(strategies =>
         {
             strategies.For(DealType.FlatFee)
-                .AddSingleton<IDealMapper, FlatFeeDealMapper>()
-                .AddSingleton<IDealUpdater, FlatFeeDealUpdater>();
+                .AddSingleton<IDealTermsMapper, FlatFeeTermsMapper>()
+                .AddSingleton<IDealTermsUpdater, FlatFeeTermsUpdater>();
             strategies.For(DealType.DoorSplit)
-                .AddSingleton<IDealMapper, DoorSplitDealMapper>()
-                .AddSingleton<IDealUpdater, DoorSplitDealUpdater>();
+                .AddSingleton<IDealTermsMapper, DoorSplitTermsMapper>()
+                .AddSingleton<IDealTermsUpdater, DoorSplitTermsUpdater>();
             strategies.For(DealType.Versus)
-                .AddSingleton<IDealMapper, VersusDealMapper>()
-                .AddSingleton<IDealUpdater, VersusDealUpdater>();
+                .AddSingleton<IDealTermsMapper, VersusTermsMapper>()
+                .AddSingleton<IDealTermsUpdater, VersusTermsUpdater>();
             strategies.For(DealType.VenueHire)
-                .AddSingleton<IDealMapper, VenueHireDealMapper>()
-                .AddSingleton<IDealUpdater, VenueHireDealUpdater>();
+                .AddSingleton<IDealTermsMapper, VenueHireTermsMapper>()
+                .AddSingleton<IDealTermsUpdater, VenueHireTermsUpdater>();
 
-            strategies.RequireAll<IDealMapper>();
-            strategies.RequireAll<IDealUpdater>();
+            strategies.RequireAll<IDealTermsMapper>();
+            strategies.RequireAll<IDealTermsUpdater>();
         });
     }
 
@@ -83,13 +83,13 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddDealDevSeeder(this IServiceCollection services)
     {
-        services.AddScoped<IDevSeeder, DealDevSeeder>();
+        services.AddScoped<IDevSeeder, DealTermsDevSeeder>();
         return services;
     }
 
     public static IServiceCollection AddDealTestSeeder(this IServiceCollection services)
     {
-        services.AddScoped<ITestSeeder, DealTestSeeder>();
+        services.AddScoped<ITestSeeder, DealTermsTestSeeder>();
         return services;
     }
 }

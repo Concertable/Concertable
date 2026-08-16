@@ -11,7 +11,7 @@ namespace Concertable.B2B.Concert.Infrastructure.Services.Workflow.Steps;
 internal sealed class DepositEscrowAcceptStep(
     IBookingService bookingService,
     IBus bus,
-    IDealAccessor dealAccessor,
+    IDealTermsAccessor dealTermsAccessor,
     ILogger<DepositEscrowAcceptStep> logger) : ISimpleAcceptStep
 {
     public async Task<UnitResult<AcceptApplicationError>> ExecuteAsync(
@@ -28,7 +28,7 @@ internal sealed class DepositEscrowAcceptStep(
 
     private async Task StageAsync(PrepaidApplication application, int bookingId, CancellationToken ct)
     {
-        var deal = (VenueHireDeal)dealAccessor.Deal;
+        var deal = (VenueHireTerms)dealTermsAccessor.Terms;
         logger.AcceptingVenueHireApplication(
             application.Id,
             bookingId,

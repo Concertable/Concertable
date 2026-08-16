@@ -15,14 +15,14 @@ internal sealed class ConcertTestSeeder : ITestSeeder
 
     private readonly ConcertDbContext context;
     private readonly SeedState seed;
-    private readonly IDealModule deals;
+    private readonly IDealTermsModule deals;
     private readonly ITermsFingerprintCalculator fingerprint;
     private readonly TimeProvider timeProvider;
 
     public ConcertTestSeeder(
         ConcertDbContext context,
         SeedState seed,
-        IDealModule deals,
+        IDealTermsModule deals,
         ITermsFingerprintCalculator fingerprint,
         TimeProvider timeProvider)
     {

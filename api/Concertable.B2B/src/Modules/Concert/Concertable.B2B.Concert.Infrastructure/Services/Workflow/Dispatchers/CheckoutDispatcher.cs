@@ -8,18 +8,18 @@ namespace Concertable.B2B.Concert.Infrastructure.Services.Workflow.Dispatchers;
 internal sealed class CheckoutDispatcher : ICheckoutDispatcher
 {
     private readonly IConcertWorkflowFactory workflows;
-    private readonly IDealResolver dealResolver;
+    private readonly IDealTermsResolver termsResolver;
 
-    public CheckoutDispatcher(IConcertWorkflowFactory workflows, IDealResolver dealResolver)
+    public CheckoutDispatcher(IConcertWorkflowFactory workflows, IDealTermsResolver termsResolver)
     {
         this.workflows = workflows;
-        this.dealResolver = dealResolver;
+        this.termsResolver = termsResolver;
     }
 
     public async Task<Checkout> ApplyCheckoutAsync(int opportunityId)
     {
-        var deal = await dealResolver.ResolveByOpportunityIdAsync(opportunityId);
-        var workflow = workflows.Create(deal.DealType);
+        var terms = await termsResolver.ResolveByOpportunityIdAsync(opportunityId);
+        var workflow = workflows.Create(terms.DealType);
 
         return workflow is IAppliesCheckout w
             ? await w.ApplyCheckout.ExecuteAsync(opportunityId)
@@ -28,8 +28,8 @@ internal sealed class CheckoutDispatcher : ICheckoutDispatcher
 
     public async Task<Checkout> AcceptCheckoutAsync(int applicationId)
     {
-        var deal = await dealResolver.ResolveByApplicationIdAsync(applicationId);
-        var workflow = workflows.Create(deal.DealType);
+        var terms = await termsResolver.ResolveByApplicationIdAsync(applicationId);
+        var workflow = workflows.Create(terms.DealType);
 
         return workflow is IAcceptsCheckout w
             ? await w.AcceptCheckout.ExecuteAsync(applicationId)

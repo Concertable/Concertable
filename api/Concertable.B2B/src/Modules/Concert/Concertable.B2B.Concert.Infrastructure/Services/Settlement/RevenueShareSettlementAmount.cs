@@ -13,13 +13,13 @@ internal abstract class RevenueShareSettlementAmount : ISettlementAmountResolver
         this.concertRepository = concertRepository;
     }
 
-    public async Task<Money> ResolveGrossAsync(int concertId, IDeal deal, CancellationToken ct = default)
+    public async Task<Money> ResolveGrossAsync(int concertId, IDealTerms terms, CancellationToken ct = default)
     {
         var totalRevenue = await concertRepository.GetTotalRevenueByConcertIdAsync(concertId)
             ?? throw new InvalidOperationException(
                 $"Concert {concertId} reached settlement with no declared door revenue — the completion gate should make this unreachable.");
-        return Money.Gbp(CalculateGross(deal, totalRevenue));
+        return Money.Gbp(CalculateGross(terms, totalRevenue));
     }
 
-    protected abstract decimal CalculateGross(IDeal deal, decimal totalRevenue);
+    protected abstract decimal CalculateGross(IDealTerms terms, decimal totalRevenue);
 }
