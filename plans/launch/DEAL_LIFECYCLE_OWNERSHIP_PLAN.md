@@ -141,19 +141,28 @@ Use module-local names rather than carrying `Concert` or repeating `Deal` on eve
 | Current role | Target name |
 |---|---|
 | `IConcertWorkflow` | `IWorkflow` |
-| `FlatFeeWorkflow`, etc. | unchanged |
-| `ConcertWorkflowBuilder` | `WorkflowBuilder` |
+| per-type workflow classes | `FlatFeeWorkflow`, `VenueHireWorkflow`, shared `DeferredSettlementWorkflow` |
+| transition-building part of `ConcertWorkflowBuilder` | `StateMachineBuilder` |
+| step/capability-building part of `ConcertWorkflowBuilder` | `WorkflowBuilder` |
 | `IConcertWorkflowFactory` / implementation | `IWorkflowFactory` / `WorkflowFactory` |
 | both state-machine and capability registries | `IWorkflowRegistry` / `WorkflowRegistry` |
 | `ConcertWorkflowRegistration` | `WorkflowDefinition` |
 | `ConcertDealStrategyBuilder` plus current Deal builder | one `StrategyBuilder` |
 | both generic strategy factories | one `IStrategyFactory<T>` / `StrategyFactory<T>` |
 
-`WorkflowDefinition` contains the `DealType`, `StateMachine`, workflow CLR type, and registered step
-types. `WorkflowRegistry` is the single immutable per-`DealType` registry and answers both
-`Get(type).StateMachine` and capability questions. Do not retain a separate
+`StateMachine` and `WorkflowDefinition` are immutable and deal-type-neutral. A definition contains a
+state machine, workflow CLR type, and registered step/capability types. `IWorkflow` therefore has no
+`DealType` property. `WorkflowRegistry` is the single immutable map that binds each `DealType` to a
+definition and answers both `Get(type).StateMachine` and capability questions. Do not retain a separate
 `DealStateMachineRegistry` and `DealWorkflowCapabilityRegistry`; those would be two long indexes over
 the same definitions.
+
+Build each distinct graph once and reuse it. The merged behaviour has two graphs: FlatFee and
+VenueHire share the escrow-funded graph that finishes directly in `Complete`; DoorSplit and Versus
+share the verified-payment graph that finishes through deferred settlement. FlatFee and VenueHire use
+different workflow definitions because their apply/checkout capabilities differ, while DoorSplit and
+Versus reuse the same `DeferredSettlementWorkflow` definition and vary only through their registered
+terms, payee, amount, and settlement strategies.
 
 Executors and steps keep their direct, operation-shaped names (`ApplyExecutor`, `AcceptExecutor`,
 `PayoutFinishStep`). They move to Deal but do not gain a redundant `Deal` prefix.
@@ -172,23 +181,26 @@ Executors and steps keep their direct, operation-shaped names (`ApplyExecutor`, 
 ## 4. Aggregate invariants
 
 `DealState` is the persisted union of states used by every deal type. Enum membership never grants a
-transition. The per-type graph is the authority.
+transition. The graph selected by the deal type's registry binding is the authority.
 
 Enforce all of the following:
 
 1. `DealEntity.DealType` is immutable and captured from the opportunity terms at apply.
 2. `DealEntity.State` has a private setter and is changed only by the aggregate transition method.
-3. `StateMachine` carries its `DealType`; a deal rejects a machine for any other type.
-4. `StateMachine` exposes no state assignment API, only `Next(current, trigger)`.
-5. `WorkflowBuilder` validates duplicate edges, an `Applied` root, reachable configured states,
-   declared terminal states, and exact `DealType` coverage before DI is built.
+3. `StateMachine` contains only the reusable transition graph and exposes no state assignment API,
+   only `Next(current, trigger)`.
+4. `StateMachineBuilder` validates duplicate edges, an `Applied` root, reachable configured states,
+   and declared terminal states.
+5. `WorkflowRegistry` owns the exact `DealType` binding and rejects missing or duplicate coverage
+   before DI is built. A caller cannot select a state machine independently of that binding.
 6. `WorkflowRegistry` is the only per-type lookup. Executors, services, mappers, and steps never perform
    keyed service location or branch on `DealType`.
 7. Every command and payment outcome passes through the Deal transitioner; no repository, mapper,
    seeder, bulk update, or event handler writes `State` directly.
-8. Exact topology tests pin every `(from, trigger,to)` edge for every existing `DealType`. Adding an enum
-   state does nothing until a workflow explicitly uses it; adding a deal type fails composition until
-   its complete strategy and workflow definition exists.
+8. Exact topology tests pin every `(from, trigger,to)` edge for every existing `DealType` and assert
+   the intended shared bindings. Adding an enum state does nothing until a workflow explicitly uses
+   it; adding a deal type fails composition until it is explicitly bound to a complete strategy and
+   workflow definition.
 9. The accept/webhook race may retain a durable `VerificationOutcome` fact on Deal so either arrival
    order can converge. It is not a second lifecycle state or transition authority; the workflow
    consumes it only when `DealState` is ready to advance.
@@ -255,6 +267,8 @@ ownership seam.
 
 - [ ] Pin the exact current transition topology for all four deal types, including payment failure,
   retry, late webhook, cancellation pending/failure, and settlement recovery paths.
+- [ ] Prove the two existing topology pairs: FlatFee equals VenueHire, and DoorSplit equals Versus;
+  keep capability/step differences characterized separately from graph equality.
 - [ ] Rename the current editable offer model from Deal to DealTerms across Domain, Contracts,
   Application, Infrastructure, seed data, and tests.
 - [ ] Rename `OpportunityEntity.DealId` to `DealTermsId`; preserve behaviour and the current module
@@ -297,9 +311,14 @@ ownership seam.
 - [ ] Move the complete workflow vertical slice into Deal: executors, steps, checkout dispatch,
   transitioner, payment outcome handlers, payee/amount/terms/settlement strategies, and DI registration.
 - [ ] Merge the existing Deal and Concert per-type registrations into one validated vertical
-  `StrategyBuilder`; introduce `WorkflowDefinition` and the single `WorkflowRegistry`.
-- [ ] Implement `DealState`, `DealTrigger`, and `StateMachine`; route every mutation through the
-  Deal aggregate guard and port the exact topology tests.
+  `StrategyBuilder`; introduce reusable `WorkflowDefinition` values and the single `WorkflowRegistry`.
+- [ ] Implement `DealState`, `DealTrigger`, `StateMachine`, and `StateMachineBuilder`. Build the
+  escrow-funded and deferred-settlement graphs once, bind FlatFee/VenueHire to the former and
+  DoorSplit/Versus to the latter, and route every mutation through the registry-selected aggregate
+  guard.
+- [ ] Give FlatFee and VenueHire separate workflow definitions over the shared escrow state machine;
+  bind DoorSplit and Versus to one shared `DeferredSettlementWorkflow` definition while retaining
+  their separate terms, payee, amount, and settlement strategies.
 - [ ] Extend `IConcertModule` with narrow draft creation, cancellation, completion-candidate, and
   settlement-fact operations. Return DTOs/scalars only; never expose `ConcertEntity`.
 - [ ] Use `IUnitOfWorkBehavior` for Booked/cancel transitions that write Deal and Concert contexts;
@@ -354,8 +373,8 @@ ownership seam.
 
 - one `DealEntity.Id` exists from apply through terminal state and is the only commercial lifecycle
   identity in B2B;
-- `DealEntity.State` is the only persisted deal state and cannot be mutated with a mismatched
-  deal-type machine or an undeclared transition;
+- `DealEntity.State` is the only persisted deal state and can only use the reusable state machine
+  selected by `WorkflowRegistry` for its immutable `DealType`;
 - the current economic offer is named DealTerms everywhere it is not a concrete artist–venue deal;
 - no `ApplicationEntity`, `BookingEntity`, `BookingService`, `BookingId`, `LifecycleStateMachine`, or
   `ConcertWorkflow*` type remains in B2B runtime code;
@@ -363,6 +382,8 @@ ownership seam.
   runtime/project reference back to Deal;
 - Concert is created at Booked, remains a separate aggregate, and is referenced from Deal only by id;
 - the single Deal strategy registration has exact coverage for every strategy family and workflow;
+- identical transition graphs are declared once: FlatFee/VenueHire share one state machine and
+  DoorSplit/Versus share another, with DoorSplit/Versus also sharing one workflow definition;
 - impossible per-type states remain unreachable even though `DealState` is a shared persisted union;
 - Payment receives only an opaque external reference and contains no Application, Booking, Deal,
   Opportunity, Venue, Artist, or Concert settlement vocabulary except generic caller metadata used by

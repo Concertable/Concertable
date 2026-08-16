@@ -7,7 +7,7 @@
 - Branch: `Refactor/launch_deal-lifecycle-ownership`
 - PR: implementation PR not opened; planning PR [#610](https://github.com/Concertable/concertable/pull/610) merged as `95b98273f59ebcadc2f9a919b8d6e04f351393d0`
 - Dependency/package gates: Phase 1 is unblocked. Phase 3 requires Phase 1, the Phase 2 Payment additive package, and the additive B2B HTTP/frontend package surfaces to be merged, published or deployed, platform-synced where applicable, and restorable. The Rust decision-engine plan is downstream of Phase 3, not a blocker.
-- Last reconciled: 2026-08-16 against clean implementation worktree HEAD/origin/main `95b98273f59ebcadc2f9a919b8d6e04f351393d0`
+- Last reconciled: 2026-08-16 in the implementation worktree; the lifecycle-reuse decision checkpoint is this commit
 
 ## Current state
 
@@ -27,7 +27,9 @@ not modified.
 Implement Phase 1 as the first independently green code PR slice:
 
 1. Add exact transition-topology characterization tests for all four current deal types, including
-   failure, retry, cancellation, late-payment, and settlement recovery edges.
+   failure, retry, cancellation, late-payment, and settlement recovery edges. Pin that FlatFee and
+   VenueHire share one graph and DoorSplit and Versus share the other, while testing workflow
+   capabilities separately.
 2. Rename the editable offer family from Deal to DealTerms across the Deal module, Opportunity
    C# consumers, seed data, and tests; rename `OpportunityEntity.DealId` to `DealTermsId` without
    changing runtime or HTTP behaviour. Keep the existing wire and frontend package names until the
@@ -53,6 +55,8 @@ Implement Phase 1 as the first independently green code PR slice:
 - Docs-only planning PR #610 merged as `95b98273f59ebcadc2f9a919b8d6e04f351393d0`;
   its plan-managed worktree and the superseded investigation worktree were removed with repository
   automation.
+- Refined the target composition so immutable state machines and workflow definitions are reusable
+  across deal types instead of carrying a `DealType` themselves.
 
 ## Verification
 
@@ -69,6 +73,8 @@ Implement Phase 1 as the first independently green code PR slice:
   admin-merged without E2E. No `api/**` path changed, so no platform-sync was created for this PR.
 - `Refactor/launch_deal-lifecycle-ownership` was created cleanly from merge commit
   `95b98273f59ebcadc2f9a919b8d6e04f351393d0`; the open platform-sync PR #608 was green at creation.
+- Lifecycle-reuse refinement: `plan_graph.py` returned 0 errors and 0 warnings; `git diff --check`
+  passed.
 - No build or test run yet: this checkpoint changes planning documents only.
 
 ## Reviews
@@ -87,9 +93,13 @@ Implement Phase 1 as the first independently green code PR slice:
   while application/booking words may survive only on honest phase-specific projections and UI copy.
 - One `WorkflowRegistry` replaces separate state-machine and capability registries. Internal workflow
   and strategy infrastructure uses namespace-scoped short names instead of `ConcertDeal...` prefixes.
-- `DealState` is a persistence union, not an authorization list. The immutable per-type machine,
-  aggregate machine/type check, single transition path, builder validation, and exact topology tests
-  enforce the state subset for each `DealType`.
+- `DealState` is a persistence union, not an authorization list. `WorkflowRegistry` binds each
+  immutable `DealType` to a reusable immutable definition; the registry-selected transition path,
+  builder validation, and exact topology tests enforce its state subset.
+- FlatFee and VenueHire share the escrow-funded state machine but retain separate workflow definitions
+  because their apply/checkout capabilities differ. DoorSplit and Versus share both the
+  deferred-settlement state machine and one `DeferredSettlementWorkflow` definition; their commercial
+  differences remain in per-type strategies.
 - Payment must stay adapter-agnostic. Its final correlation term is `ExternalReference`, with B2B using
   `deal:{id}`; Payment does not receive a parameter called `DealId`.
 - Venue and Artist consume the published `@concertable/b2b` package, so their DealTerms/Deal resource
