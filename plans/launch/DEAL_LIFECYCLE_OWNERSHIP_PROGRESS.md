@@ -3,11 +3,11 @@
 - Plan: `plans/launch/DEAL_LIFECYCLE_OWNERSHIP_PLAN.md`
 - Roadmap: `plans/launch/LAUNCH_ROADMAP.md`
 - Roadmap item: `launch/deal-lifecycle-ownership`
-- Worktree: planning worktree `C:\Users\TommySeery\source\repos\Concertable\.worktrees\Docs-DealLifecycleOwnershipPlan`; implementation worktree not created
-- Branch: `Docs/DealLifecycleOwnershipPlan`; next proposed branch `Refactor/launch_deal-lifecycle-ownership`
-- PR: [#610](https://github.com/Concertable/concertable/pull/610), work head `c0f4e1d5274c0d8cb69865ad8708734f43adec5a`
+- Worktree: `C:\Users\TommySeery\source\repos\Concertable\.worktrees\Refactor-launch_deal-lifecycle-ownership`
+- Branch: `Refactor/launch_deal-lifecycle-ownership`
+- PR: implementation PR not opened; planning PR [#610](https://github.com/Concertable/concertable/pull/610) merged as `95b98273f59ebcadc2f9a919b8d6e04f351393d0`
 - Dependency/package gates: Phase 1 is unblocked. Phase 3 requires Phase 1, the Phase 2 Payment additive package, and the additive B2B HTTP/frontend package surfaces to be merged, published or deployed, platform-synced where applicable, and restorable. The Rust decision-engine plan is downstream of Phase 3, not a blocker.
-- Last reconciled: 2026-08-16 against verified local, remote, and PR work head `c0f4e1d5274c0d8cb69865ad8708734f43adec5a`
+- Last reconciled: 2026-08-16 against clean implementation worktree HEAD/origin/main `95b98273f59ebcadc2f9a919b8d6e04f351393d0`
 
 ## Current state
 
@@ -17,29 +17,26 @@ Accept, and creates Concert at Booked. Contract, Invoice, workflow strategies, e
 handlers, and combined dashboard queries all live in Concert. Payment correlates the same flow through
 consumer-specific ApplicationId and BookingId contracts.
 
-No product code has changed in this worktree. The plan, ledger, roadmap item, and prerequisite gate in
-the Rust decision-engine plan are the only changes. The dirty main checkout and unrelated worktrees
-were not modified.
+The investigated plan is durable on main through PR #610. Its planning worktree and the superseded
+no-PR investigation worktree are closed. This clean implementation worktree is ready for Phase 1;
+no product code has changed on its branch yet. The dirty main checkout and unrelated worktrees were
+not modified.
 
 ## Next Steps
 
-Land the reviewed docs-only planning PR, close its worktree, then implement Phase 1 as the first
-independently green code PR slice:
+Implement Phase 1 as the first independently green code PR slice:
 
-1. Admin-merge PR #610 with `skip-e2e` and close the planning worktree after merged containment is
-   verified.
-2. Create `Refactor/launch_deal-lifecycle-ownership` from current `origin/main`.
-3. Add exact transition-topology characterization tests for all four current deal types, including
+1. Add exact transition-topology characterization tests for all four current deal types, including
    failure, retry, cancellation, late-payment, and settlement recovery edges.
-4. Rename the editable offer family from Deal to DealTerms across the Deal module, Opportunity
+2. Rename the editable offer family from Deal to DealTerms across the Deal module, Opportunity
    C# consumers, seed data, and tests; rename `OpportunityEntity.DealId` to `DealTermsId` without
    changing runtime or HTTP behaviour. Keep the existing wire and frontend package names until the
    additive Phase 2 producer surfaces are published.
-5. Preserve the two current module-local strategy builders in this phase; update architecture guidance
+3. Preserve the two current module-local strategy builders in this phase; update architecture guidance
    to distinguish DealTerms from the future concrete Deal.
-6. Re-scaffold B2B initial migrations, run the smallest affected Deal/Concert builds and focused unit
+4. Re-scaffold B2B initial migrations, run the smallest affected Deal/Concert builds and focused unit
    and integration tests, then open the draft PR so remote CI validates the exact head.
-7. Reconcile this ledger with commit, PR, verification, and review evidence. Do not begin Phase 3 until
+5. Reconcile this ledger with commit, PR, verification, and review evidence. Do not begin Phase 3 until
    both published-boundary expansion gates recorded in the plan are green.
 
 ## Completed work
@@ -53,6 +50,9 @@ independently green code PR slice:
   the stale Rust extraction plan until the Deal ownership cut-over has landed and been reconciled.
 - Planning baseline: `6870e8e05`; delivery-gate corrections: `ec368204c`; implementation handoff
   metadata: `688c3f966`.
+- Docs-only planning PR #610 merged as `95b98273f59ebcadc2f9a919b8d6e04f351393d0`;
+  its plan-managed worktree and the superseded investigation worktree were removed with repository
+  automation.
 
 ## Verification
 
@@ -65,12 +65,17 @@ independently green code PR slice:
 - `git diff --check`: passed.
 - Initial work push verified local HEAD, `origin/Docs/DealLifecycleOwnershipPlan`, and PR #610
   `headRefOid` all equal `c0f4e1d5274c0d8cb69865ad8708734f43adec5a`.
+- PR #610 was current with main, contained only four Markdown paths, carried `skip-e2e`, and was
+  admin-merged without E2E. No `api/**` path changed, so no platform-sync was created for this PR.
+- `Refactor/launch_deal-lifecycle-ownership` was created cleanly from merge commit
+  `95b98273f59ebcadc2f9a919b8d6e04f351393d0`; the open platform-sync PR #608 was green at creation.
 - No build or test run yet: this checkpoint changes planning documents only.
 
 ## Reviews
 
 - Docs review: clean after the published-frontend sequence, Rust prerequisite, package-cutover phase,
-  and ledger evidence were corrected; reviewed through work head `c0f4e1d5274c0d8cb69865ad8708734f43adec5a`.
+  and ledger evidence were corrected; final watermark `883a07dc248c7f8250f14049af194f3a8de3ea78`.
+- The spent docs-review work order was deleted after PR #610 merged.
 - Review the Phase 1 code diff after implementation and focused verification.
 
 ## Decisions, discoveries, blockers, and deviations
@@ -95,6 +100,6 @@ independently green code PR slice:
 ## Resume prompt
 
 ```
-/worktree create Refactor/launch_deal-lifecycle-ownership
+cd C:\Users\TommySeery\source\repos\Concertable\.worktrees\Refactor-launch_deal-lifecycle-ownership
 Read @plans/launch/DEAL_LIFECYCLE_OWNERSHIP_PLAN.md and @plans/launch/DEAL_LIFECYCLE_OWNERSHIP_PROGRESS.md and do what its `## Next Steps` says.
 ```
