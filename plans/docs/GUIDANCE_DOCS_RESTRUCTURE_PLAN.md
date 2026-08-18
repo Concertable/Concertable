@@ -802,7 +802,7 @@ An earlier revision of this plan proposed folding `dotagents` into `standards/do
 would break every other codebase that depends on it. Repo count is not the metric — audience is. Plugins
 make count matter less anyway, since a project installs only the plugins it wants.
 
-`Infonetica/standards-docs` is the reference shape for a *pure* standards repo: 9 files —
+`Infonetica/standards-docs` is a **worked example to borrow from, not a spec to copy** — consult it when unsure how to shape something, and diverge where this corpus genuinely differs (it has no hook and one harness). What it demonstrates well is how small a pure standards repo can be: 9 files —
 `.claude-plugin/marketplace.json`, one `plugins/service-standards/` with 4 skills, a README. No `.agents/`,
 no stubs, no generators, no hooks. Everything beyond that in `agent-standards` exists to serve two
 harnesses **and** a write-time hook, not because plugins demand it.
