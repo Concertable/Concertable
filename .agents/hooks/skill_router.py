@@ -8,7 +8,7 @@ optional, and optional lost.
 So the trigger stops being "the model decided this topic is relevant" and becomes "the path being
 written". `.agents/skill-routes.json` maps path -> owning skill; a new concern is a new row there.
 
-Two behaviours, and the difference matters:
+Three behaviours, and the difference matters:
 
 - **First write into a routed path in a session -> block once** with the owning skills and their own
   descriptions, then allow every later write to that route. PreToolUse has no way to add context
@@ -18,6 +18,15 @@ Two behaviours, and the difference matters:
 - **A deny pattern -> block every time.** Those are mechanically decidable violations, so they are not
   advice. A repo whose rules are also expressible in its build should enforce them there too - a hook
   matcher is per-tool and never sees `dotnet new`, a shell heredoc or an MCP write.
+- **A routed skill with no SKILL.md anywhere -> block every time, never once-and-allow.** The
+  block-once contract only makes sense when the block is dischargeable: read the skill, then the route
+  is satisfied. A missing skill has nothing to read, so the one-time notice was observed to fail
+  exactly the way a deny pattern would if it only fired once - an agent reads "NOT INSTALLED", has no
+  standard to load in response, and the next write to that route sails through with the skill still
+  unread, silently, for the rest of the session. Distinguishing "installed, not yet read" from "not
+  installed at all" and gating only the first on session state is the fix; the second stays a hard
+  stop, same tier as a deny pattern, until the deployment fault - a missing plugin, or a route naming a
+  skill that no longer resolves - is actually fixed.
 
 Contract: exit 0 = allow, exit 2 = block with stderr fed back to the agent. Anything unexpected exits
 0 - a broken router must not wedge every write, since a build gate is the tier that guarantees.
@@ -381,7 +390,13 @@ def query(argv):
         print("skill-routes.json owns these changed paths. Load each skill before judging its files:")
         for name in sorted(owed):
             files = sorted(set(owed[name]))
+            desc = skill_description(name)
             print(f"\n  * {name}  ({len(files)} file(s))")
+            if desc is None:
+                print(
+                    "      NOT INSTALLED - a deployment fault, not a skill to skip. This route's files "
+                    "were written and reviewed with nothing to check them against."
+                )
             for rel in files:
                 print(f"      {rel}")
     for rel, reason in violations:
@@ -448,6 +463,28 @@ def main():
             )
             sys.exit(2)
 
+    # A missing skill next, also every time: retrying past "NOT INSTALLED" cannot discharge a route
+    # that has nothing to read, so it must never fall through to the once-per-session allow below.
+    missing = []
+    for rel, route in matched:
+        for name in route.get("skills") or []:
+            if skill_description(name) is None and (rel, name) not in missing:
+                missing.append((rel, name))
+    if missing:
+        lines = ["SKILL ROUTER - blocked, a skill this path routes to is NOT INSTALLED:", ""]
+        for rel, name in missing:
+            lines.append(f"  {rel}  ->  {name}")
+        lines += [
+            "",
+            "This is a deployment fault, not a reminder: there is no SKILL.md to load, so retrying this "
+            "write does not satisfy the route. The file was NOT written, and this blocks every attempt, "
+            "not once per session, until the fault is actually fixed - either:",
+            "  - install/reinstall the plugin that should carry this skill, or",
+            f"  - correct the name in {ROUTES_FILE} if it no longer matches an installed skill.",
+        ]
+        sys.stderr.write("\n".join(lines))
+        sys.exit(2)
+
     session = data.get("session_id")
     seen = load_seen(session)
     pending = []
@@ -467,16 +504,10 @@ def main():
     for rel, route in pending:
         lines += [f"  {rel}", ""]
         for name in route.get("skills") or []:
-            desc = skill_description(name)
+            # Guaranteed installed here - a missing skill already exited above, every time, not just
+            # the first time this route was matched.
             lines.append(f"  * {name}")
-            if desc:
-                lines.append(f"      {desc}")
-            else:
-                lines.append(
-                    "      NOT INSTALLED - no SKILL.md in this plugin, under ~/.agents/skills or "
-                    "~/.claude/skills, or in any installed plugin. A route pointing at a missing skill "
-                    "is a deployment fault, not a reason to proceed."
-                )
+            lines.append(f"      {skill_description(name)}")
         if route.get("note"):
             lines.append(f"      NOTE: {route['note']}")
     lines += [
