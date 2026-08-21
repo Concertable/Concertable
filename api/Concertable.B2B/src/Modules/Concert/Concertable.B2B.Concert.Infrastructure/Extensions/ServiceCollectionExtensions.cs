@@ -99,6 +99,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvoicePdfRenderer, InvoicePdfRenderer>();
         services.AddScoped<ISelfBillingAgreementService, SelfBillingAgreementService>();
         services.AddScoped<ISelfBillingAgreementGate, SelfBillingAgreementGate>();
+        services.AddScoped<IObligationChecker, ObligationChecker>();
+        services.AddScoped<IConcertRecordsExporter, ConcertRecordsExporter>();
         services.AddScoped<IClientContext, ClientContextAccessor>();
         services.AddConcertDealStrategies();
 
