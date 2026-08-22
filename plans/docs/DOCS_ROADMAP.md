@@ -11,9 +11,9 @@
 > distributed as versioned, load-on-demand Claude Code plugin skills from `Concertable/agent-standards`,
 > mirroring `Infonetica/standards-docs`; a repo pays no context cost for a standard it never uses.
 >
-> **Scope:** guidance and architecture markdown plus the hooks that police it. Product docs
-> (`docs/USP.md`, `docs/OVERVIEW.md`) and plan/review working docs are out of scope except where a
-> guidance doc points at them.
+> **Scope:** guidance and architecture markdown plus the hooks that police it. Product docs (relocated by
+> polyrepo N6 to the central [`Concertable/docs`](https://github.com/Concertable/docs) repo) and plan/review
+> working docs are out of scope except where a guidance doc points at them.
 
 ## Why this epic exists
 
