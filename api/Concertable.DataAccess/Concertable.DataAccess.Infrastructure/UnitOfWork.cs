@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Concertable.DataAccess.Infrastructure;
 
-public class UnitOfWork<TContext>(TContext context) : IConcurrencyUnitOfWork<TContext>
+public class UnitOfWork<TContext>(TContext context) : IUnitOfWork<TContext>
     where TContext : DbContextBase
 {
     public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>

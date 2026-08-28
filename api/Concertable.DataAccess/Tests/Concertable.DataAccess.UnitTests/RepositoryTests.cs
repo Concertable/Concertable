@@ -86,7 +86,7 @@ public sealed class RepositoryTests
     {
         await using var context = this.CreateContext();
         await context.AddAsync(new TestEntity { Name = "Persisted" });
-        IConcurrencyUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(context);
+        IUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(context);
 
         var saved = await unitOfWork.TrySaveChangesAsync();
 
@@ -112,7 +112,7 @@ public sealed class RepositoryTests
         winner.Name = "Winner";
         loser.Name = "Loser";
         await winnerContext.SaveChangesAsync();
-        IConcurrencyUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(loserContext);
+        IUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(loserContext);
 
         var saved = await unitOfWork.TrySaveChangesAsync();
 
@@ -125,7 +125,7 @@ public sealed class RepositoryTests
     {
         var options = new DbContextOptionsBuilder<FailingDbContext>().Options;
         await using var context = new FailingDbContext(options);
-        IConcurrencyUnitOfWork<FailingDbContext> unitOfWork = new UnitOfWork<FailingDbContext>(context);
+        IUnitOfWork<FailingDbContext> unitOfWork = new UnitOfWork<FailingDbContext>(context);
 
         await Assert.ThrowsAsync<DbUpdateException>(() => unitOfWork.TrySaveChangesAsync());
     }

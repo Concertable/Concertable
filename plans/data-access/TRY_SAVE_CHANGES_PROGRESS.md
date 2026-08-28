@@ -12,8 +12,7 @@
 ## Current state
 
 The producer implementation is complete locally. A C# 14 extension on `DbContext` owns concurrency
-recovery, and the additive concurrency unit-of-work capability exposes it without leaking a context to
-services or breaking existing package consumers.
+recovery, and the existing unit-of-work contract exposes it without leaking a context to services.
 
 ## Next Steps
 
@@ -21,8 +20,7 @@ Run plan validation and producer review, then push and open the producer PR.
 
 ## Completed work
 
-- Added `IConcurrencyUnitOfWork<TContext>` and delegated its `TrySaveChangesAsync` through the `DbContext`
-  extension.
+- Added `TrySaveChangesAsync` to `IUnitOfWork<TContext>` and delegated it through the `DbContext` extension.
 
 ## Verification
 
@@ -35,4 +33,4 @@ Run plan validation and producer review, then push and open the producer PR.
 ## Decisions, discoveries, blockers, and deviations
 
 - The helper handles only `DbUpdateConcurrencyException`; duplicate-key handling remains separate debt.
-- The additive API still requires publish then sync because Payment consumes the packaged assembly.
+- The contract change requires publish then sync because Payment consumes the packaged assembly.

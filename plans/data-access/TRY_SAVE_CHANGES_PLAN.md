@@ -20,8 +20,7 @@ three ordered slices:
 - `TrySaveChangesAsync` returns `true` after a successful save and `false` for
   `DbUpdateConcurrencyException`; every other exception propagates.
 - A C# 14 extension on `DbContext` owns the EF save/clear behavior.
-- The additive `IConcurrencyUnitOfWork<TContext>` capability exposes the operation and
-  `UnitOfWork<TContext>` delegates to the extension without breaking existing unit-of-work implementations.
+- `IUnitOfWork<TContext>` exposes the operation and `UnitOfWork<TContext>` delegates to the extension.
 - Expected save failures clear every tracked entity from each originating context with
   `ChangeTracker.Clear()` because the failed transactional unit of work cannot be safely reused piecemeal.
 - Duplicate-key handling remains separate debt rather than widening the helper with exception policy.
@@ -49,5 +48,5 @@ three ordered slices:
 ## Verification
 
 - DataAccess projects build and unit tests pass.
-- The packed DataAccess artifact exposes `TrySaveChangesAsync` on `IConcurrencyUnitOfWork<TContext>`.
+- The packed DataAccess artifact exposes `TrySaveChangesAsync` on `IUnitOfWork<TContext>`.
 - Payment's concurrent duplicate-retry integration test passes against the published package baseline.
