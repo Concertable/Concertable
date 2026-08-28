@@ -89,6 +89,8 @@ platform lockstep version `0.1.0-alpha.0.1235` confirms B2B/Customer consume the
 
 ## Reviews
 
+- 2026-08-28 docs reconciliation: `reviews/Docs-launch_platform-commission_phase1b-reconcile.md` —
+  complete, approved, no findings (watermark `8ff82bee5`).
 - Review artifact: `reviews/Feature-CommissionBindingDeferredPricing.md`.
 - OWN1, CV1, BUG1, CV2, TEST1, TEST2, BUG2 — all fixed and closed; no finding reopened after the
   current-main reconciliation, the error-convention alignment on `Feature/PaymentOwnedResultExpansion`,
