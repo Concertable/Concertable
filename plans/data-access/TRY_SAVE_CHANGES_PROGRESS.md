@@ -11,8 +11,9 @@
 
 ## Current state
 
-The producer implementation is complete locally. It adds a concurrency-specific context helper and
-clears the complete failed tracker.
+The producer implementation is complete locally. A C# 14 extension on `DbContext` owns concurrency
+recovery, and the additive concurrency unit-of-work capability exposes it without leaking a context to
+services or breaking existing package consumers.
 
 ## Next Steps
 
@@ -20,7 +21,8 @@ Run plan validation and producer review, then push and open the producer PR.
 
 ## Completed work
 
-- Added `TrySaveChangesAsync` on `DbContext`; its concurrency branch calls `ChangeTracker.Clear()` directly.
+- Added `IConcurrencyUnitOfWork<TContext>` and delegated its `TrySaveChangesAsync` through the `DbContext`
+  extension.
 
 ## Verification
 

@@ -82,19 +82,20 @@ public sealed class RepositoryTests
     }
 
     [Fact]
-    public async Task WriteContext_TrySaveChangesAsync_Success_PersistsAndReturnsTrue()
+    public async Task UnitOfWork_TrySaveChangesAsync_Success_PersistsAndReturnsTrue()
     {
         await using var context = this.CreateContext();
         await context.AddAsync(new TestEntity { Name = "Persisted" });
+        IConcurrencyUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(context);
 
-        var saved = await context.TrySaveChangesAsync();
+        var saved = await unitOfWork.TrySaveChangesAsync();
 
         Assert.True(saved);
         Assert.Equal("Persisted", (await context.Entities.SingleAsync()).Name);
     }
 
     [Fact]
-    public async Task WriteContext_TrySaveChangesAsync_ConcurrencyFailure_ClearsChangeTracker()
+    public async Task UnitOfWork_TrySaveChangesAsync_ConcurrencyFailure_ClearsChangeTracker()
     {
         await using (var seed = this.CreateContext())
         {
@@ -111,19 +112,22 @@ public sealed class RepositoryTests
         winner.Name = "Winner";
         loser.Name = "Loser";
         await winnerContext.SaveChangesAsync();
+        IConcurrencyUnitOfWork<TestDbContext> unitOfWork = new UnitOfWork<TestDbContext>(loserContext);
 
-        var saved = await loserContext.TrySaveChangesAsync();
+        var saved = await unitOfWork.TrySaveChangesAsync();
 
         Assert.False(saved);
         Assert.Empty(loserContext.ChangeTracker.Entries());
     }
 
     [Fact]
-    public async Task WriteContext_TrySaveChangesAsync_NonConcurrencyFailure_Propagates()
+    public async Task UnitOfWork_TrySaveChangesAsync_NonConcurrencyFailure_Propagates()
     {
-        await using var context = new FailingDbContext();
+        var options = new DbContextOptionsBuilder<FailingDbContext>().Options;
+        await using var context = new FailingDbContext(options);
+        IConcurrencyUnitOfWork<FailingDbContext> unitOfWork = new UnitOfWork<FailingDbContext>(context);
 
-        await Assert.ThrowsAsync<DbUpdateException>(() => context.TrySaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() => unitOfWork.TrySaveChangesAsync());
     }
 
     [Fact]
@@ -257,7 +261,7 @@ public sealed class RepositoryTests
         }
     }
 
-    private sealed class FailingDbContext : DbContext
+    private sealed class FailingDbContext(DbContextOptions<FailingDbContext> options) : DbContextBase(options)
     {
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             throw new DbUpdateException();
