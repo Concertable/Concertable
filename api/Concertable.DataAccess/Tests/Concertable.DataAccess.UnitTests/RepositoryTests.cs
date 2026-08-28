@@ -82,6 +82,51 @@ public sealed class RepositoryTests
     }
 
     [Fact]
+    public async Task WriteContext_TrySaveChangesAsync_Success_PersistsAndReturnsTrue()
+    {
+        await using var context = this.CreateContext();
+        await context.AddAsync(new TestEntity { Name = "Persisted" });
+
+        var saved = await ((IWriteDbContext)context).TrySaveChangesAsync();
+
+        Assert.True(saved);
+        Assert.Equal("Persisted", (await context.Entities.SingleAsync()).Name);
+    }
+
+    [Fact]
+    public async Task WriteContext_TrySaveChangesAsync_ConcurrencyFailure_ClearsChangeTracker()
+    {
+        await using (var seed = this.CreateContext())
+        {
+            await seed.AddRangeAsync(
+                new TestEntity { Name = "Original" },
+                new TestEntity { Name = "Unrelated" });
+            await seed.SaveChangesAsync();
+        }
+        await using var winnerContext = this.CreateContext();
+        await using var loserContext = this.CreateContext();
+        var winner = await winnerContext.Entities.SingleAsync(entity => entity.Name == "Original");
+        var loser = await loserContext.Entities.SingleAsync(entity => entity.Name == "Original");
+        _ = await loserContext.Entities.SingleAsync(entity => entity.Name == "Unrelated");
+        winner.Name = "Winner";
+        loser.Name = "Loser";
+        await winnerContext.SaveChangesAsync();
+
+        var saved = await ((IWriteDbContext)loserContext).TrySaveChangesAsync();
+
+        Assert.False(saved);
+        Assert.Empty(loserContext.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task WriteContext_TrySaveChangesAsync_NonConcurrencyFailure_Propagates()
+    {
+        var context = new FailingWriteDbContext();
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.TrySaveChangesAsync());
+    }
+
+    [Fact]
     public async Task Repository_ReadThenSave_PreservesOneTrackedUnitOfWork()
     {
         await using var context = this.CreateContext();
@@ -204,6 +249,28 @@ public sealed class RepositoryTests
     private sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContextBase(options)
     {
         public DbSet<TestEntity> Entities => Set<TestEntity>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<TestEntity>().Property(entity => entity.Name).IsConcurrencyToken();
+        }
+    }
+
+    private sealed class FailingWriteDbContext : IWriteDbContext
+    {
+        public Task AddAsync<TEntity>(TEntity entity, CancellationToken ct = default) where TEntity : class =>
+            throw new NotSupportedException();
+
+        public Task AddRangeAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken ct = default)
+            where TEntity : class => throw new NotSupportedException();
+
+        public void Update<TEntity>(TEntity entity) where TEntity : class => throw new NotSupportedException();
+
+        public void Remove<TEntity>(TEntity entity) where TEntity : class => throw new NotSupportedException();
+
+        public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+            throw new DbUpdateException();
     }
 
     private sealed class TestReadDbContext(

@@ -10,7 +10,7 @@ public static class DbUpdateExceptionExtensions
 
     public static void DiscardFailedChanges(this DbUpdateException ex)
     {
-        foreach (var entry in ex.Entries)
-            entry.State = EntityState.Detached;
+        foreach (var context in ex.Entries.Select(entry => entry.Context).Distinct())
+            context.ChangeTracker.Clear();
     }
 }
