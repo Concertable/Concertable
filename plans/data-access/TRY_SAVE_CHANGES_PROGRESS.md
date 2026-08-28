@@ -16,7 +16,7 @@ recovery, and the existing unit-of-work contract exposes it without leaking a co
 
 ## Next Steps
 
-Run plan validation and producer review, then push and open the producer PR.
+Land the producer expand PR, then migrate every direct implementation in its generated platform-sync PR.
 
 ## Completed work
 
@@ -34,3 +34,5 @@ Run plan validation and producer review, then push and open the producer PR.
 
 - The helper handles only `DbUpdateConcurrencyException`; duplicate-key handling remains separate debt.
 - The contract change requires publish then sync because Payment consumes the packaged assembly.
+- The generated platform-sync PR is expected to fail with `CS0535` until Payment's direct unit-of-work
+  implementations adopt the published member; that migration belongs in the sync PR.

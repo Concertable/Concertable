@@ -12,7 +12,7 @@ B2B and Payment compile against the published package rather than this source ch
 three ordered slices:
 
 1. add and publish the shared producer API;
-2. merge the generated platform package sync;
+2. migrate every existing direct implementation in the generated platform package sync and merge it green;
 3. migrate the in-flight Payment reconciliation branch against the published API.
 
 ## Design
@@ -37,7 +37,8 @@ three ordered slices:
 ### Phase 2 — published package sync
 
 - Merge the producer and verify the next published platform version contains the API.
-- Merge the generated platform-sync PR green.
+- Treat `CS0535` from existing direct `IUnitOfWork<TContext>` implementations as the expected cut-over
+  surface, implement the new member in each one, and merge the generated platform-sync PR green.
 
 ### Phase 3 — consumers
 
