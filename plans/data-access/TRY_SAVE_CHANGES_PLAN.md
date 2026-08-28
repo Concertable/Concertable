@@ -19,7 +19,7 @@ three ordered slices:
 
 - `TrySaveChangesAsync` returns `true` after a successful save and `false` for
   `DbUpdateConcurrencyException`; every other exception propagates.
-- The extension lives on `IWriteDbContext`.
+- The extension lives on `DbContext`, so it clears the same context it saves directly.
 - Expected save failures clear every tracked entity from each originating context with
   `ChangeTracker.Clear()` because the failed transactional unit of work cannot be safely reused piecemeal.
 - Duplicate-key handling remains separate debt rather than widening the helper with exception policy.
@@ -28,7 +28,7 @@ three ordered slices:
 
 ### Phase 1 — shared producer
 
-- Add the write-context extension and focused success, concurrency, propagation, and tracker-clearing coverage.
+- Add the context extension and focused success, concurrency, propagation, and tracker-clearing coverage.
 - Replace per-entry failed-change detachment with whole-context clearing.
 - Build and test DataAccess, then open the producer PR.
 
@@ -46,5 +46,5 @@ three ordered slices:
 ## Verification
 
 - DataAccess projects build and unit tests pass.
-- The packed DataAccess artifact exposes `TrySaveChangesAsync` on `IWriteDbContext`.
+- The packed DataAccess artifact exposes `TrySaveChangesAsync` on `DbContext`.
 - Payment's concurrent duplicate-retry integration test passes against the published package baseline.

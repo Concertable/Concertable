@@ -11,7 +11,7 @@
 
 ## Current state
 
-The producer implementation is complete locally. It adds a concurrency-specific write-context helper and
+The producer implementation is complete locally. It adds a concurrency-specific context helper and
 clears the complete failed tracker.
 
 ## Next Steps
@@ -20,8 +20,7 @@ Run plan validation and producer review, then push and open the producer PR.
 
 ## Completed work
 
-- Added `TrySaveChangesAsync` on `IWriteDbContext` and changed failed-change cleanup to
-  `ChangeTracker.Clear()`.
+- Added `TrySaveChangesAsync` on `DbContext`; its concurrency branch calls `ChangeTracker.Clear()` directly.
 
 ## Verification
 
