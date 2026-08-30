@@ -1,4 +1,6 @@
 using Concertable.B2B.DataAccess.Infrastructure;
+using Concertable.B2B.KeyedStrategies;
+using Concertable.B2B.Tenant.Contracts.Enums;
 using Concertable.Seed.Shared;
 using Concertable.Seed.Shared.Extensions;
 using Concertable.B2B.Artist.Contracts.Events;
@@ -286,6 +288,19 @@ public static class ServiceCollectionExtensions
 
         services.TryAddScoped<IKeyedServiceProvider>(sp => (IKeyedServiceProvider)sp);
         services.TryAddScoped(typeof(IConcertDealStrategyFactory<>), typeof(ConcertDealStrategyFactory<>));
+        return services;
+    }
+
+    internal static IServiceCollection AddConcertTenantStrategies(
+        this IServiceCollection services,
+        Action<KeyedStrategyBuilder<TenantType>> configure)
+    {
+        var builder = new KeyedStrategyBuilder<TenantType>(services);
+        configure(builder);
+        builder.Build();
+
+        services.TryAddScoped<IKeyedServiceProvider>(sp => (IKeyedServiceProvider)sp);
+        services.TryAddScoped(typeof(IConcertTenantStrategyFactory<>), typeof(ConcertTenantStrategyFactory<>));
         return services;
     }
 
