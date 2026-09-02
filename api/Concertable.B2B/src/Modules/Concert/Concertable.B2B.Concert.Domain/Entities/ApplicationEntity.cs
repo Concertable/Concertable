@@ -24,6 +24,12 @@ public abstract class ApplicationEntity : IIdEntity, IVenueArtistTenantScoped, I
     public BookingEntity? Booking { get; private set; }
     public Guid? AcceptanceOperationId { get; private set; }
     public Guid? CancellationOperationId { get; private set; }
+
+    /// <summary>
+    /// The opaque Payment-issued commission binding fixing the platform rate for this payer commitment.
+    /// Null until the payer reaches the binding point; immutable once set (§3.3 — a binding is never rebound).
+    /// </summary>
+    public Guid? CommissionBindingId { get; private set; }
     public string? FinancialFailureCode { get; private set; }
     public string? FinancialFailureMessage { get; private set; }
 
@@ -40,7 +46,7 @@ public abstract class ApplicationEntity : IIdEntity, IVenueArtistTenantScoped, I
         Guid artistTenantId)
     {
         if (venueTenantId == Guid.Empty || artistTenantId == Guid.Empty)
-            throw new InvalidOperationException("An application requires resolved venue and artist tenants.");
+            throw new DomainException("An application requires resolved venue and artist tenants.");
 
         ArtistId = artistId;
         OpportunityId = opportunityId;
@@ -71,10 +77,24 @@ public abstract class ApplicationEntity : IIdEntity, IVenueArtistTenantScoped, I
     internal void RecordFinancialFailure(string code, string message)
     {
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(message))
-            throw new InvalidOperationException("A financial failure requires a code and message.");
+            throw new DomainException("A financial failure requires a code and message.");
 
         FinancialFailureCode = code;
         FinancialFailureMessage = message;
+    }
+
+    /// <summary>
+    /// Records the Payment-issued commission binding at the payer commitment point. Re-supplying the same
+    /// binding is idempotent for retry; a different binding is rejected — a commitment is never repriced.
+    /// </summary>
+    public void BindCommission(Guid commissionBindingId)
+    {
+        if (commissionBindingId == Guid.Empty)
+            throw new DomainException("A commission binding requires a non-empty identifier.");
+        if (CommissionBindingId is { } existing && existing != commissionBindingId)
+            throw new DomainException("This application is already bound to a different commission binding.");
+
+        CommissionBindingId = commissionBindingId;
     }
 
     internal void RecordPaymentVerified() => PaymentVerification = PaymentVerification.Verified;

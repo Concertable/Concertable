@@ -139,6 +139,7 @@ public static class ServiceCollectionExtensions
         // Repositories
         services.AddScoped<IConcertRepository, ConcertRepository>();
         services.AddScoped<IConcertReadRepository, ConcertReadRepository>();
+        services.AddScoped<IRevenueShareSettlementRepository, RevenueShareSettlementRepository>();
         services.AddScoped<IOpportunityRepository, OpportunityRepository>();
         services.AddScoped<IOpportunityReadRepository, OpportunityReadRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
@@ -203,6 +204,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDealPayeeResolver, DealPayeeResolver>();
         services.AddScoped<IPaymentAmountMapper, PaymentAmountMapper>();
         services.AddScoped<ISettlementAmountResolver, SettlementAmountResolver>();
+        services.AddScoped<ISettlementGrossCalculator, SettlementGrossCalculator>();
+        services.AddScoped<ISettlementMapper, SettlementMapper>();
 
         return services.AddConcertDealStrategies(strategies =>
         {
@@ -210,7 +213,9 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<IDealTerms, FlatFeeDealTerms>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, FlatFeePaymentAmountMapper>()
-                .AddSingleton<ISettlementAmountResolver, FlatFeeSettlementAmount>()
+                .AddScoped<ISettlementAmountResolver, FlatFeeSettlementAmount>()
+                .AddSingleton<ISettlementGrossCalculator, FlatFeeSettlementGrossCalculator>()
+                .AddScoped<ISettlementMapper, FixedSettlementMapper>()
                 .AddWorkflow<FlatFeeWorkflow>(workflow => workflow
                     .WithApply<SimpleApplyStep>()
                     .WithCheckout<HoldCheckoutStep>()
@@ -225,7 +230,9 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<IDealTerms, DoorSplitDealTerms>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, DoorSplitPaymentAmountMapper>()
-                .AddScoped<ISettlementAmountResolver, DoorSplitSettlementAmount>()
+                .AddScoped<ISettlementAmountResolver, RevenueShareSettlementAmount>()
+                .AddSingleton<ISettlementGrossCalculator, DoorSplitSettlementGrossCalculator>()
+                .AddScoped<ISettlementMapper, RevenueShareSettlementMapper>()
                 .AddWorkflow<DoorSplitWorkflow>(workflow => workflow
                     .WithApply<SimpleApplyStep>()
                     .WithCheckout<VerifyCheckoutStep>()
@@ -241,7 +248,9 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<IDealTerms, VersusDealTerms>()
                 .AddSingleton<IDealPayeeResolver, VenuePaysArtistDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, VersusPaymentAmountMapper>()
-                .AddScoped<ISettlementAmountResolver, VersusSettlementAmount>()
+                .AddScoped<ISettlementAmountResolver, RevenueShareSettlementAmount>()
+                .AddSingleton<ISettlementGrossCalculator, VersusSettlementGrossCalculator>()
+                .AddScoped<ISettlementMapper, RevenueShareSettlementMapper>()
                 .AddWorkflow<VersusWorkflow>(workflow => workflow
                     .WithApply<SimpleApplyStep>()
                     .WithCheckout<VerifyCheckoutStep>()
@@ -257,7 +266,9 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<IDealTerms, VenueHireDealTerms>()
                 .AddSingleton<IDealPayeeResolver, ArtistPaysVenueDealPayeeResolver>()
                 .AddSingleton<IPaymentAmountMapper, VenueHirePaymentAmountMapper>()
-                .AddSingleton<ISettlementAmountResolver, VenueHireSettlementAmount>()
+                .AddScoped<ISettlementAmountResolver, VenueHireSettlementAmount>()
+                .AddSingleton<ISettlementGrossCalculator, VenueHireSettlementGrossCalculator>()
+                .AddScoped<ISettlementMapper, FixedSettlementMapper>()
                 .AddWorkflow<VenueHireWorkflow>(workflow => workflow
                     .WithCheckout<SetupCheckoutStep>()
                     .WithApply<PaidApplyStep>()
@@ -272,6 +283,8 @@ public static class ServiceCollectionExtensions
             strategies.RequireAll<IDealPayeeResolver>();
             strategies.RequireAll<IPaymentAmountMapper>();
             strategies.RequireAll<ISettlementAmountResolver>();
+            strategies.RequireAll<ISettlementGrossCalculator>();
+            strategies.RequireAll<ISettlementMapper>();
             strategies.RequireAll<IConcertWorkflow>();
         });
     }

@@ -3,14 +3,18 @@
 - Plan: `plans/launch/PLATFORM_COMMISSION_PLAN.md`
 - Roadmap: `plans/launch/LAUNCH_ROADMAP.md`
 - Roadmap item: `launch/platform-commission`
-- Worktree: none active. Phases 1 and 1b are terminal on `origin/main`. Phase 2 starts a fresh
-  worktree — `Feature/launch_platform-commission-phase2` from the current remote default.
-- Branch: none active (Phase 1b delivered on `Feature/PaymentOwnedResultExpansion` via PR #392).
+- Worktree: `C:/Users/tommy/source/repos/Concertable/.worktrees/Feature-launch_platform-commission-phase2`
+  (created 2026-08-28 from `origin/main` `10a1aa0bb` for Phase 2). Phases 1 and 1b are terminal on `origin/main`.
+- Branch: `Feature/launch_platform-commission-phase2` (Phase 2 active; Phase 1b delivered on
+  `Feature/PaymentOwnedResultExpansion` via PR #392).
 - PR: [#392 — refactor(payment): own typed operation results](https://github.com/Concertable/concertable/pull/392) (MERGED 2026-08-07) — absorbed and superseded [#296](https://github.com/Concertable/concertable/pull/296).
 - Dependency/package gates: Phase 1b's breaking Payment package published and its generated platform
   sync migrated the B2B and Customer consumers. `ConcertablePlatformVersion` has since advanced to
   `0.1.0-alpha.0.1235`. No gate outstanding for Phase 2 entry.
 - Last reconciled: 2026-08-28 against `origin/main` `3b7e3e56d`, PR #392, and the Payment proto on main.
+- Phase 2 progress: steps 1–2 (settlement-model foundation) are the draft
+  [PR #847](https://github.com/Concertable/concertable/pull/847), review-approved, awaiting merge-queue
+  CI. Payment-journey rewiring (step 3+) is a separate PR. Steps 3–9 remain.
 
 ## Current state
 
@@ -30,47 +34,101 @@ confirms the Phase 1b shape:
   `reserved "expected_commission_minor", "expected_payer_total_minor"` (and the bind/calc requests
   also reserve `"gross_minor"`) — no post-binding call accepts a caller-supplied commission or total.
 
-There is no uncommitted work and no active worktree for this plan.
+**Phase 2 is in progress** on `Feature/launch_platform-commission-phase2`. Steps 1–2 of §10 Phase 2
+are committed:
+
+- **Step 1** — `ISettlementGrossCalculator`: four pure, deal-type-keyed final-gross formulae
+  (`Concert.Application/Interfaces/ISettlementGrossCalculator.cs` + four leaves in
+  `Concert.Infrastructure/Services/Settlement/`). The impure `ISettlementAmountResolver` now loads the
+  eligible takings and delegates the formula to the pure calculator, so `RevenueShareSettlementAmount`
+  serves both DoorSplit and Guarantee Plus and the redundant `DoorSplitSettlementAmount` /
+  `VersusSettlementAmount` leaves are gone. Revenue-share multiplication rounds once, half-up, at the
+  minor unit.
+- **Step 2 — settlement-model foundation** (committed locally, own PR pending):
+  - `ApplicationEntity.CommissionBindingId` (`Guid?`) + `BindCommission(Guid)` — idempotent on the
+    same binding, rejects a different one or empty (§3.3 "never rebound"); filtered unique index.
+  - **Revenue-share settlement extracted to its own aggregate** — `RevenueShareSettlementEntity`
+    (table `RevenueShareSettlements`, unique FK to concert, no navigation on `ConcertEntity`). A row
+    exists only for a DoorSplit/Guarantee Plus concert that has declared its door take. `DoorRevenue`
+    moved OFF `ConcertEntity` (which now has zero settlement fields); `DeclareDoorRevenue` → the
+    aggregate's `Declare` / `Redeclare`. `SettlementReview` value object (`Domain/ValueObjects/`,
+    `OwnsOne` → `Review_*` columns) for the frozen payer-reviewed gross — one all-or-nothing value,
+    cleared by `Redeclare`. `FreezeReviewedGross` modelled, not yet wired (like `BindCommission`).
+  - **Manager `settlement` response is a `$type` union** — `ISettlement` = `fixed` | `revenueShare`,
+    the latter carrying a nested `ISettlementDeclaration` = `undeclared` | `declared` | `reviewed`.
+    Built by a keyed `ISettlementMapper` (`Fixed`/`RevenueShare` leaves, `RequireAll`), reusing the
+    existing `IPaymentAmountMapper` for the formula. `MyDetailsResponse` drops `DoorRevenue` for
+    `Settlement`; `ManagerConcertDetails` splits owner fields off `ConcertDetails`; one-round-trip
+    query projection (`ManagerConcertDetailsProjection` + `QueryableSettlementMappers.ToManagerDetails`).
+    Frontend: dead `MyConcert.doorRevenue` field removed (nothing rendered it).
+  - Concert model re-scaffolded (`20260828154959_InitialCreate`). 266 Concert unit tests green.
+
+This pulled step 4's read-model shape forward. Call-site wiring (bind at commitment, freeze on
+review, worker reads the frozen gross) is step 3.
+
+Steps 3–9 remain. Interactive review with Tommy through the session; a formal review artifact is the
+next step before the PR merges.
 
 ## Next Steps
 
-**Start Phase 2 — B2B gross ownership and percentage cut-over.** This session deliberately stops
-here (Phase 1b was the gate; it is already through). Phase 2 is a separate delivery slice.
+**Push the step-2 branch and open its PR, then continue with step 3.**
 
-**Delivery-gate status: none. Phase 2 is directly implementable.** The entire producer surface it
-consumes is already published in `Concertable.Payment.Client` at the pinned platform version
-(`0.1.0-alpha.0.1235`, `api/Concertable.B2B/Directory.Packages.props`): `ICommissionPricingClient`
-(`PreviewAsync` / `CreateOrBindAsync` / `ConfirmReviewedGrossAsync` / `CalculateBoundAsync`),
-`IManagerPaymentOperationsClient.PayBoundCommissionAsync` + `CreateBoundCommissionHoldSessionAsync`,
-`IEscrowOperationsClient.DepositBoundCommissionAsync` / `CaptureBoundCommissionAsync` /
-`RefundBoundCommissionByBookingIdAsync`. B2B production code today calls the legacy non-bound
-variants (`PayAsync`, `DepositAsync`, `CaptureAsync`, `CreateHoldSessionAsync`, `RefundByBookingIdAsync`)
-and Payment applies the temporary £10 internally — those call sites are what Phase 2 swaps, adding the
-binding step at each payer commitment point. §10's "do not compile against unpublished Payment source"
-warning does not apply here: the surface is published.
+1. ~~Record a formal review of step 2.~~ Done — `reviews/Feature-launch_platform-commission-phase2.md`,
+   approved; TEST1 + DOC1 closed.
+2. ~~Open the PR.~~ Done — draft [PR #847](https://github.com/Concertable/concertable/pull/847)
+   (`c68878297` + `bfd511848` + `6ae3c5797`). **Next on it:** let merge-queue CI run — the Concert
+   integration suite must confirm the `ToManagerDetails` query + `OwnsOne` projection (worktree can't
+   run them: `Microsoft.Data.SqlClient.SNI` / Windows MAX_PATH). When exact-head CI is green, mark
+   ready and enqueue (`merge`). Then close this worktree and start step 3 from the updated default.
+3. **Step 3** — bind the rate at each payer commitment point (§3.2: FlatFee at Confirm & Pay / hold;
+   VenueHire at Authorise & Apply / setup; DoorSplit + Guarantee Plus at booking acceptance / setup)
+   and route all four payment journeys through the binding-aware Payment methods (`CreateOrBindAsync`
+   + `PayBoundCommissionAsync` / `CreateBoundCommissionHoldSessionAsync` / `DepositBoundCommissionAsync`
+   / `CaptureBoundCommissionAsync` / `RefundBoundCommissionByBookingIdAsync`). Call sites are in
+   `Concert.Infrastructure/Services/Workflow/Steps/` (`HoldCheckoutStep`, `SetupCheckoutStep`,
+   `VerifyCheckoutStep`, `CaptureEscrowAcceptStep`, `PayoutFinishStep`, `ReleaseEscrowFinishStep`),
+   all calling the legacy non-bound client variants today. Call `application.BindCommission(...)` at
+   the commitment point; wire `RevenueShareSettlementEntity.FreezeReviewedGross` at the payer review;
+   `PayoutFinishStep` reads `RevenueShareSettlementEntity.Review.GrossMinor` for deferred deals
+   instead of recalculating.
+4. Then steps 4–6: exact/deferred pricing DTOs + attestation + fail-closed error mapping (the manager
+   settlement-view shape is already done); payer + artist disclosures in the manager SPAs (render the
+   new `settlement` union); re-scaffold if the model changes again.
+5. Steps 7–8: local build + focused unit tests, push for full CI; update this plan + launch trackers.
+6. Step 9 hard stop: merge and own publish/platform-sync before Phase 3 removes the legacy Payment APIs.
 
-1. Branch a fresh worktree from the current remote default (`main`).
-2. Follow `PLATFORM_COMMISSION_PLAN.md` §10 "Phase 2" steps 1–9: the four keyed pure gross
-   strategies + exhaustive formula/rounding tests; persist only `CommissionBindingId` + the frozen
-   final-gross snapshot for deferred deals; bind the rate at each payer commitment point and route
-   all four payment journeys through the binding-aware Payment methods; exact/deferred pricing DTOs
-   + final takings review/attestation + fail-closed error mapping; payer and artist disclosures in
-   the manager SPAs; re-scaffold the Concert model; local build + focused unit tests, then push the
-   checkpoint for full CI (merge queue stays the E2E gate).
-3. Phase 2's own hard stop: merge and own publish/platform-sync before Phase 3 removes the legacy
-   Payment APIs.
+**Producer surface (unchanged, for step 3):** the binding-aware Payment methods are all published in
+`Concertable.Payment.Client` at the pinned `0.1.0-alpha.0.1235`. §10's "do not compile against
+unpublished Payment source" warning does not apply — the surface is published.
 
 Do not touch Phase 3 (removing the temporary £10 seam) until Phase 2 and its platform sync are green.
 
 ## Resume prompt
 
 ```
-/open-worktree Feature/launch_platform-commission-phase2
+cd C:/Users/tommy/source/repos/Concertable/.worktrees/Feature-launch_platform-commission-phase2
 Read @plans/launch/PLATFORM_COMMISSION_PLAN.md and @plans/launch/PLATFORM_COMMISSION_PROGRESS.md and do what its `## Next Steps` says.
 ```
 
 ## Completed work
 
+- **Phase 2 step 2 — settlement-model foundation** (2026-08-28, `Feature/launch_platform-commission-phase2`,
+  own PR pending) — `ApplicationEntity.CommissionBindingId` + `BindCommission(Guid)` (filtered-unique
+  index). Revenue-share settlement extracted to `RevenueShareSettlementEntity` (own aggregate/table,
+  row only for a declared revenue-share concert); `DoorRevenue` moved off `ConcertEntity`;
+  `SettlementReview` value object (`OwnsOne`) for the frozen payer-reviewed gross. Manager `settlement`
+  response is a `$type` union (`fixed` | `revenueShare` → `undeclared` | `declared` | `reviewed`) built
+  by a keyed `ISettlementMapper`. One-round-trip query projection. Dead `MyConcert.doorRevenue`
+  frontend field removed. Concert model re-scaffolded (`20260828154959_InitialCreate`). 266 Concert
+  unit tests green.
+- **Phase 2 step 1** (2026-08-28, `Feature/launch_platform-commission-phase2`) — `ISettlementGrossCalculator`,
+  four pure deal-type-keyed final-gross formulae: FlatFee/VenueHire return the agreed fixed term;
+  DoorSplit returns `artistPercent × eligibleTakings`; Guarantee Plus (`Versus`) returns
+  `guarantee + artistPercent × eligibleTakings`. Revenue-share term rounds once, half-up, at the minor
+  unit. The impure `ISettlementAmountResolver` keeps ownership of loading the takings and delegates the
+  formula, so there is one formula home (`RevenueShareSettlementAmount` now serves both revenue-share
+  deal types; `DoorSplitSettlementAmount` / `VersusSettlementAmount` deleted). 252 Concert unit tests
+  green; 17 new in `SettlementGrossCalculatorTests`.
 - **Phase 1** — percentage configuration, immutable SQL configuration history, bindings by
   configuration ID, additive preview/bind/bound-calculation contracts, distinct binding-aware
   money-movement RPCs, transaction tax facts, multi-refund persistence, proportional refund logic,
@@ -85,6 +143,28 @@ Read @plans/launch/PLATFORM_COMMISSION_PLAN.md and @plans/launch/PLATFORM_COMMIS
   B2B and Customer consumers.
 
 ## Verification
+
+Phase 2 step 2 (2026-08-28, `Feature/launch_platform-commission-phase2`):
+
+- `dotnet test Concertable.B2B.Concert.UnitTests`: 266 passed, 0 failed.
+- `dotnet build` of `Concertable.B2B.Concert.Api`, `Concertable.B2B.Concert.IntegrationTests`,
+  `src/Concertable.B2B.AppHost`: 0 errors, 0 warnings.
+- `./initial-migrations.ps1` re-scaffold: Concert model changed → `20260828154959_InitialCreate`
+  (`Applications.CommissionBindingId` + filtered unique index; new `RevenueShareSettlements` table with
+  unique FK to `Concerts` + `Review_GrossMinor` / `Review_ReviewedAtUtc` owned-type columns;
+  `Concerts.DoorRevenue` dropped); every other module's migration id unchanged.
+- **Not verifiable locally:** the Concert integration suite. `Microsoft.Data.SqlClient.SNI` fails to
+  load from this worktree (`0x800700CE` — Windows MAX_PATH on the `.worktrees/Feature-launch_...` path),
+  so the `ToManagerDetails` EF query translation and the `OwnsOne` projection are **CI-only**. Same
+  root cause as the `MSB3030` copy failures on `Concertable.Shared.Notification.Infrastructure` /
+  `Concertable.B2B.Conversations.IntegrationTests` in a full `.slnx` build (reproduced with changes
+  stashed — not a regression). Merge-queue E2E is the gate.
+- Frontend: `MyConcert.doorRevenue` was a declared-but-unrendered type field; removed. `declareDoorRevenue`
+  action link + the declare POST flow unchanged. Full web-build gate deferred to the PR.
+
+Phase 2 step 1 (2026-08-28, `Feature/launch_platform-commission-phase2`):
+
+- `dotnet test Concertable.B2B.Concert.UnitTests`: 252 passed, 0 failed (was 235; +17 `SettlementGrossCalculatorTests`).
 
 Phase 1b, from PR #392's merge candidate:
 
@@ -101,6 +181,13 @@ platform lockstep version `0.1.0-alpha.0.1235` confirms B2B/Customer consume the
 
 ## Reviews
 
+- **Phase 2 step 2** — `reviews/Feature-launch_platform-commission-phase2.md`, complete, **approved**
+  up to `559595388`. Interactive review with Tommy across the session drove the design (nullable on
+  `ConcertEntity` → extracted aggregate + `SettlementReview` VO + the `$type` declaration union; 3
+  subqueries → 1; dead read-context member; `DeferredBooking` guard). The independent pass added two
+  findings, both closed: TEST1 (settlement-mapper state coverage — `SettlementMapperTests`), DOC1
+  (`CODE_PATTERNS.md` unfiltered-entity roster). CI-only: the `ToManagerDetails` EF translation and the
+  `OwnsOne` projection.
 - 2026-08-28 docs reconciliation: `reviews/Docs-platform-commission-1b-reconcile.md` —
   complete, approved, no findings.
 - Review artifact: `reviews/Feature-CommissionBindingDeferredPricing.md`.
@@ -111,6 +198,17 @@ platform lockstep version `0.1.0-alpha.0.1235` confirms B2B/Customer consume the
 
 ## Decisions, discoveries, blockers, and deviations
 
+- **Step 2 grew and split off its own PR.** Adding the frozen gross as `long? FinalSettlementGrossMinor`
+  on `ConcertEntity` was rejected (Tommy): a deal-type-conditional nullable on the concert aggregate
+  that "keeps growing" as the commission model adds fields. Resolution: revenue-share settlement is its
+  own aggregate (`RevenueShareSettlementEntity`), `DoorRevenue` moved with it, and the manager
+  settlement view became a `$type` union — which is step 4's read-model shape, pulled forward because
+  you cannot move `DoorRevenue` off the entity without redoing its read path. Net: step 2 ships as its
+  own PR (zero published-contract impact), Phase 2 is now two PRs (foundation, then payment rewiring).
+- **The Concert integration suite cannot run in this worktree** — `Microsoft.Data.SqlClient.SNI` DLL
+  load fails with `0x800700CE` (Windows MAX_PATH; the `.worktrees/Feature-launch_platform-commission-phase2`
+  prefix is too deep). The `ToManagerDetails` EF query and `OwnsOne` projection are verified only by
+  merge-queue CI. Not a code problem; do not chase it locally.
 - Phase 1b delivered under PR #392, not #296. The `Feature/CommissionBindingDeferredPricing` branch
   was folded into `Feature/PaymentOwnedResultExpansion` (the typed-result migration) because the two
   touched the same Payment client/error surface and shipping them separately would have forced a
@@ -124,6 +222,84 @@ platform lockstep version `0.1.0-alpha.0.1235` confirms B2B/Customer consume the
   the commission binding surface.
 
 ## Event log
+
+### 2026-08-28 — Phase 2 step 2: review-feedback cleanup
+
+- Action (post-review, Tommy's feedback): projections `ManagerConcertDetailsProjection` /
+  `RevenueShareSettlementRowProjection` moved `DTOs/` → `Application/Projections/`;
+  `QueryableSettlementMappers.ToManagerDetails` folded into `QueryableConcertMappers` (file deleted);
+  **all Concert domain `InvalidOperationException` → `DomainException`** (11 sites + the settlement
+  guard in `RevenueShareSettlementAmount`), rule added to `ARCHITECTURE.md` and enforced by
+  `DomainInvariantExceptionTests` (source scan); `ISettlementGrossCalculator.CalculateGross` takes
+  `Money? eligibleTakings = null` so fixed-fee callers stop passing a `Money.Zero` sentinel;
+  `ISettlementMapper.ToSettlement` takes `(DealDto, ConcertDetails, RevenueShareSettlementRowProjection?,
+  DateTime)` instead of the whole projection.
+- Evidence: 276 Concert unit tests green; Concert.Api / Concert.IntegrationTests / B2B.AppHost build clean.
+- Outcome: recorded as an incremental review pass. Next: push, CI, mark PR #847 ready.
+
+### 2026-08-28 — Phase 2 step 2: settlement-model foundation (own PR)
+
+- Action: `ApplicationEntity.CommissionBindingId` + `BindCommission(Guid)`. Extracted all revenue-share
+  settlement data into `RevenueShareSettlementEntity` — own table, unique FK to concert, no navigation
+  on `ConcertEntity`; `DoorRevenue` moved off `ConcertEntity` (now zero settlement fields);
+  `DeclareDoorRevenue` → `Declare` / `Redeclare` on the aggregate. `SettlementReview` value object
+  (`Domain/ValueObjects/`, `OwnsOne` → `Review_GrossMinor` / `Review_ReviewedAtUtc`) for the frozen
+  payer-reviewed gross — set or unset as one value. Manager `settlement` response → `ISettlement`
+  `$type` union (`fixed` | `revenueShare`, nested `undeclared` | `declared` | `reviewed`), built by a
+  keyed `ISettlementMapper` (`RequireAll`), reusing `IPaymentAmountMapper` for the formula.
+  `ManagerConcertDetails` splits owner fields off `ConcertDetails`; one-round-trip
+  `ManagerConcertDetailsProjection` + `QueryableSettlementMappers.ToManagerDetails`. Removed the dead
+  `MyConcert.doorRevenue` frontend field. Re-scaffolded (`20260828154959_InitialCreate`).
+- Decision: see "Decisions" — `long? FinalSettlementGrossMinor` on `ConcertEntity` rejected; extracted
+  aggregate instead; step 4's read-model shape pulled forward; ships as its own PR.
+- In-session review findings all fixed: 3 subqueries → 1; dead read-context member; `Declare` deferred
+  -booking guard; response `CanDeclare` + coupled nullables → declaration union; two `ReviewedGross*`
+  columns → `SettlementReview` VO.
+- Evidence: 266 Concert unit tests. Concert.Api / Concert.IntegrationTests / B2B.AppHost build clean
+  (0 warnings). Concert integration suite is CI-only (SqlClient SNI / MAX_PATH in this worktree).
+- Outcome: committed locally on `c68878297`+1 (folded the earlier `fbba220f2` — which had the rejected
+  `FinalSettlementGrossMinor` approach — into one clean commit via `git reset --soft`). Next: formal
+  review artifact, then PR, then step 3.
+
+### 2026-08-28 — Phase 2 step 1: pure keyed settlement-gross calculators
+
+- Action: Added `ISettlementGrossCalculator` (Concert.Application) + four keyed leaves
+  (`{FlatFee,VenueHire,DoorSplit,Versus}SettlementGrossCalculator`, revenue-share leaves on a shared
+  `RevenueShareSettlementGrossCalculator` base) in `Concert.Infrastructure/Services/Settlement/`.
+  Refactored the impure `ISettlementAmountResolver`: `FlatFeeSettlementAmount` /
+  `VenueHireSettlementAmount` / `RevenueShareSettlementAmount` now delegate the formula to the pure
+  calculator; `RevenueShareSettlementAmount` (formerly abstract) serves both DoorSplit and Versus keys;
+  `DoorSplitSettlementAmount` / `VersusSettlementAmount` deleted. Registered the new family with
+  `RequireAll<ISettlementGrossCalculator>()`.
+- Evidence: `SettlementGrossCalculatorTests` (17 cases: exact, whole-takings, zero-share,
+  half-minor-unit round-up, fractional-percentage round-once, additive-not-max for Guarantee Plus).
+  Concert unit tests 252 passed. `ConcertDealStrategyFactoryTests` updated for the new family and the
+  DoorSplit/Versus → `RevenueShareSettlementAmount` repoint.
+- Decision: kept `ISettlementAmountResolver` as the impure orchestration seam (it already encodes
+  "load takings or not" per deal type) rather than collapsing it; the pure calculator owns the formula
+  so there is no duplicate. Step 2/4 will split "eligible takings" into Concertable sales + declared
+  external takings behind that same seam.
+- Outcome: step 1 committed. Next: step 2 (persist `CommissionBindingId` + frozen gross snapshot).
+
+### 2026-08-28 — Phase 2 started: worktree created, producer surface verified
+
+- Action: Opened `Feature/launch_platform-commission-phase2` worktree from `origin/main` `10a1aa0bb`.
+  Confirmed no open red platform-sync PR. Restored B2B against pin `0.1.0-alpha.0.1235` and reflected
+  the published `Concertable.Payment.Client` binding-aware surface.
+- Evidence: `ICommissionPricingClient` = `PreviewAsync` / `CreateOrBindAsync(externalReference,
+  payerReference, currency, reviewedCommissionConfigurationId, stripePaymentIntentId,
+  stripeSetupIntentId)` / `ConfirmReviewedGrossAsync(bindingId, externalReference, payerReference,
+  reviewedGross)` / `CalculateBoundAsync(bindingId, externalReference, payerReference, gross,
+  stripePaymentIntentId, stripeSetupIntentId)`. `IManagerPaymentOperationsClient.PayBoundCommissionAsync`
+  + `CreateBoundCommissionHoldSessionAsync`; `IEscrowOperationsClient.DepositBoundCommissionAsync` /
+  `CaptureBoundCommissionAsync` / `RefundBoundCommissionByBookingIdAsync`. No bound variant of
+  `ReleaseByBookingIdAsync` — release transfers the stored payee gross (plan §6.2), so no rebind needed.
+- Discovery: B2B already has an impure keyed settlement family — `ISettlementAmountResolver`
+  (`Concert.Infrastructure/Services/Settlement/`, keyed by `IConcertDealStrategyFactory`), with
+  `FlatFeeSettlementAmount` / `VenueHireSettlementAmount` / `DoorSplitSettlementAmount` /
+  `VersusSettlementAmount`, the last two on the revenue-loading `RevenueShareSettlementAmount` base.
+  Phase 2 step 1 separates the pure formula (`gross = f(deal, eligibleTakings)`) from the takings IO.
+- Outcome: Worktree live, ledger reconciled. Next: implement step 1.
 
 ### 2026-08-28 — reconciled: Phase 1b is terminal, delivered via PR #392
 
