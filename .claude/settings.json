@@ -14,7 +14,7 @@
     ]
   },
   "enabledPlugins": {
-    "concertable@agent-standards": true,
+    "process-standards@process-agents": true,
     "dotnet@agent-standards": true,
     "react@agent-standards": true,
     "dotnet-standards@dotagents": true,

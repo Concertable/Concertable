@@ -4,10 +4,10 @@
     "first: the area floors and layer routes always apply, and a specific row below ADDS to them.",
     "The convention this table follows \u2014 the layered floor+route model, why a row keyed on a top-level",
     "directory cannot port to a carved repo while one keyed on architecture ports verbatim, and the",
-    "field semantics \u2014 is standards/process/SKILL_ROUTES.md in Concertable/agent-standards (skill",
-    "`skill-routes`). This file is emitted by that convention's generator (.agents/gen_skill_routes.py);",
-    "a carved repo derives its table rather than hand-copying one, so re-run the generator, do not edit",
-    "the floors by hand."
+    "field semantics \u2014 is the `skill-routes` skill in tomjseery/process-agents.",
+    "This file is emitted by that convention's generator (.agents/gen_skill_routes.py) in",
+    "Concertable/agent-standards, which also ships it inside the `dotnet` plugin for every registered",
+    "repo - so re-run the generator, do not edit rows by hand."
   ],
   "routes": [
     {

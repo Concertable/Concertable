@@ -32,8 +32,10 @@ class PluginOwnedHookWiringTests(unittest.TestCase):
         for command in _session_start_commands(_claude_settings()):
             self.assertIn(BOOTSTRAP_HOOK, command)
 
-    def test_claude_enables_the_central_concertable_plugin(self):
-        self.assertTrue(_claude_settings()["enabledPlugins"]["concertable@agent-standards"])
+    def test_claude_enables_the_plugin_that_owns_the_hooks(self):
+        """The method and both write-time hooks ship from process-agents, not from the product repo."""
+        self.assertTrue(_claude_settings()["enabledPlugins"]["process-standards@process-agents"])
+        self.assertNotIn("concertable@agent-standards", _claude_settings()["enabledPlugins"])
 
 
 class ProvisioningBootstrapTests(unittest.TestCase):
