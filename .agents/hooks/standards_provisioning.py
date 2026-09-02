@@ -8,7 +8,8 @@ catalogue disappears in silence and the session simply behaves as if no standard
 Two failures produce that silence, and neither is hypothetical:
 
 * the marketplace clone is stale, so a plugin renamed upstream (``agent-process`` -> ``workflow`` ->
-  ``concertable``) is no longer advertised under the name ``enabledPlugins`` asks for;
+  ``concertable`` -> ``process-standards``, the last of those also moving marketplace) is no longer
+  advertised under the name ``enabledPlugins`` asks for;
 * the marketplace is current but the plugin was never installed under its new name, because naming a
   plugin in ``enabledPlugins`` enables it, it does not install it.
 

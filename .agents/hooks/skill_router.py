@@ -44,7 +44,7 @@ prints which skills a set of changed files obliges a reader to load. That is wha
 review cannot miss what its author was required to load - the other half of the failure above, where
 the follow-up review repeated the identical blind spot and returned clean.
 
-Ships in the `agent-process` plugin, so both harnesses run this one file. They share the exit-2 block
+Ships in the `process-standards` plugin, so both harnesses run this one file. They share the exit-2 block
 contract but NOT the payload: Claude sends a PascalCase tool name and one path under `file_path`,
 while Codex sends `apply_patch` with the paths named inside the patch body. Matching only Claude's
 shape is not a partial rollout - it is a hook that allows every Codex write while looking wired. A

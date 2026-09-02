@@ -52,5 +52,5 @@ agent-starter-kit/
 ```
 
 The bare `worktree` and `sync` names belong to that personal set. The repository-workflow procedures of
-the same shape ship from `agent-process` as `open-worktree` and `sync-checkout`, renamed precisely so a
+the same shape ship from `process-standards` as `open-worktree` and `sync-checkout`, renamed precisely so a
 personal skill and a plugin skill cannot resolve under one name and shadow each other.
