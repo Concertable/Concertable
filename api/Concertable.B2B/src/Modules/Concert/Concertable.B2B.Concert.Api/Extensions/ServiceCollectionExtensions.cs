@@ -16,6 +16,15 @@ public static class ServiceCollectionExtensions
         services.AddConcertModule(configuration);
         services.AddSingleton<IApplicationMapper, ApplicationMapper>();
         services.AddSingleton<IOpportunityMapper, OpportunityMapper>();
+        services.AddConcertTenantStrategies(strategies =>
+        {
+            strategies.For(TenantType.Venue)
+                .AddScoped<IApplicationResponseMapper, VenueApplicationResponseMapper>();
+            strategies.For(TenantType.Artist)
+                .AddScoped<IApplicationResponseMapper, ArtistApplicationResponseMapper>();
+
+            strategies.RequireAll<IApplicationResponseMapper>();
+        });
         services.AddValidatorsFromAssemblyContaining<ApplyRequestValidator>(includeInternalTypes: true);
         services.AddControllers()
             .AddInternalControllers(typeof(ConcertController).Assembly);

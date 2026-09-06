@@ -1,6 +1,7 @@
 using Concertable.B2B.Concert.Api.Mappers;
 using Concertable.B2B.Concert.Api.Requests;
 using Concertable.B2B.Concert.Api.Responses;
+using Concertable.B2B.Concert.Application.Strategies;
 using Concertable.B2B.Tenant.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -15,17 +16,20 @@ internal sealed class ApplicationController : ControllerBase
     private readonly IContractService contractService;
     private readonly IApplicationMapper mapper;
     private readonly IMembershipContext membership;
+    private readonly IConcertTenantStrategyFactory<IApplicationResponseMapper> responseMapperFactory;
 
     public ApplicationController(
         IApplicationService applicationService,
         IContractService contractService,
         IApplicationMapper mapper,
-        IMembershipContext membership)
+        IMembershipContext membership,
+        IConcertTenantStrategyFactory<IApplicationResponseMapper> responseMapperFactory)
     {
         this.applicationService = applicationService;
         this.contractService = contractService;
         this.mapper = mapper;
         this.membership = membership;
+        this.responseMapperFactory = responseMapperFactory;
     }
 
     [HasPermission(VenuePermissions.ApplicationsDecide)]
@@ -88,21 +92,12 @@ internal sealed class ApplicationController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApplicationResponse>> GetById(int id)
     {
-        Func<ApplicationDto, ApplicationResponse> responseMapper;
-        switch (membership.Type)
-        {
-            case TenantType.Venue:
-                responseMapper = mapper.ToVenueResponse;
-                break;
-            case TenantType.Artist:
-                responseMapper = mapper.ToArtistResponse;
-                break;
-            default:
-                return Forbid();
-        }
+        if (membership.Type is not { } tenantType)
+            return Forbid();
 
+        var responseMapper = responseMapperFactory.Create(tenantType);
         return (await applicationService.GetByIdAsync(id))
-            .ToOkOrProblem(responseMapper);
+            .ToOkOrProblem(responseMapper.ToResponse);
     }
 
     // No [HasPermission]: both parties read (venue + artist), enforced by the two-party tenant filter
