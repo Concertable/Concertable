@@ -25,10 +25,12 @@ and the repaired B2B `ApplicationAcceptedEvent` topology. The four M4 commits ar
 changing their boundaries; final review and validation belong to the resulting exact head.
 
 The M4 candidate replaces the final Auth.Contracts-to-Messaging cross-repository runtime source edge with the
-`Concertable.Messaging.Contracts` package seam, exposes Payment through an HTTPS proxy endpoint in the B2B and
+`Concertable.Messaging.Contracts` package seam, exposes Payment through HTTP-schemed discovery in the B2B and
 Customer standalone AppHosts, and makes inventory validation reject blocking runtime edges as well as test-tier
-edges. The Auth carve gate now includes both Auth-owned source roots, so it proves Auth.Contracts restores
-Messaging from the package feed rather than silently omitting the contract project.
+edges. The compatibility endpoint retains the `https` name required by the currently published Payment.Client,
+but its URI scheme honestly matches the container's HTTP-only port 8080 listener. The Auth carve gate now includes
+both Auth-owned source roots, so it proves Auth.Contracts restores Messaging from the package feed rather than
+silently omitting the contract project.
 
 Existing `auth`, `b2b`, `customer`, `payment`, `search`, `infra`, and `config` repositories retain their
 identities. The remaining repository boundaries are `platform-dotnet`, `platform-frontend`, and `system`.
@@ -49,8 +51,8 @@ creates no repository and makes no topology decision.
 - Restacked the M4 packet from obsolete P4 `4f2681974c914a15e50c6292e724e42900d3d20b` toward current P4
   `406391952840912153587406a9d04ed1fcd8cecc` while preserving its four commit boundaries.
 - Replaced the Auth.Contracts `ProjectReference` to Messaging.Contracts with a centrally pinned package reference.
-- Corrected the B2B and Customer Payment resource endpoints to terminate HTTPS at the Aspire proxy while keeping
-  container target port 8080, and updated the owner host-graph assertions.
+- Restored HTTP-schemed Payment discovery in the B2B and Customer hosts while retaining the `https` endpoint name
+  required by Payment.Client, and made both owner host-graph suites assert the honest scheme.
 - Extended the split-inventory check to fail for blocking runtime edges and regenerated the inventory.
 - Extended the Auth carve workflow to include and build the Auth.Contracts owner root.
 
@@ -62,18 +64,32 @@ creates no repository and makes no topology decision.
 - `eng/repository-split/inventory.py --check` previously passed with zero blocking runtime and test-tier edges.
 - `eng/repository-split/validate_map.py` previously reported zero duplicate claims; its 79 unclaimed paths remain
   the pre-existing F0 map-admission work and are outside M4.
+- The Auth clean carve builds both Auth-owned roots plus the runtime/unit/integration closure with zero errors.
+  Its restored asset graph resolves `Concertable.Messaging.Contracts/0.1.0-local.1788721241736` as a package and
+  contains no project reference.
+- The B2B clean carve builds its 104-project package-only solution with zero errors, and all 13 B2B standalone
+  host-graph tests pass against the same exact local M1 package set.
+- The Customer clean carve builds its 54-project package-only solution with zero errors, and all 9 Customer
+  standalone architecture tests pass against the same exact local M1 package set.
+- M4R1 targeted AppHost graph verification passes 4/4 B2B tests and 4/4 Customer tests against exact local
+  platform version `0.1.0-local.1788721241736`; both suites assert the compatibility endpoint's HTTP scheme.
+- Windows verification used a temporary short drive mapping because the isolated worktree plus the longest B2B
+  project path is 265 characters. Fresh archive carves eliminated the path-length artifact; no source workaround
+  or reduced graph was used.
 - No local E2E suite was run; E2E remains a remote merge-queue diagnostic gate.
 
 ## Reviews
 
 The existing review artifact `reviews/Refactor-RepoSplit-M4-Closure-Repair.md` approved the obsolete-base
 candidate through `8e46afb0d16465cf518786ffb03a0ad07ed89094`. The exact restacked head requires an incremental review
-watermark before publication or delivery.
+watermark before publication or delivery. Its M4R1 finding about the false HTTPS advertisement is repaired by
+this commit; any new finding remains owned by M4.
 
 ## Decisions, discoveries, blockers, and deviations
 
-- The Payment container continues to listen on target port 8080. `WithHttpsEndpoint` changes the Aspire proxy
-  discovery scheme to HTTPS; it does not require TLS inside the Payment container.
+- The Payment container listens without TLS on target port 8080. The compatibility endpoint is therefore created
+  with `WithHttpEndpoint`; only its name remains `https` because the currently published Payment.Client resolves
+  `services:payment-web:https:0`. Aspire does not terminate TLS on behalf of an HTTP-only container target.
 - Auth.Contracts owns its package pin because it is a separately mapped root in the retained Auth repository.
   Local M1 validation overrides that pin with the exact locally prepared platform version.
 - Initial in-worktree B2B/Customer build attempts failed in MSBuild copy targets because the 265-character B2B
